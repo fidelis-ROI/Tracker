@@ -1,26 +1,82 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-base: #00020A;
+  --primary: #1440FF;
+  --primary-deep: #0027D4;
+  --text-primary: #FFFFFF;
+  --text-muted: #8892A4;
+  --surface: #0A0F1E;
+  --border: #1A2140;
+
+  --radius: 0.625rem;
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface);
+  --popover-foreground: var(--text-primary);
+  --primary-color: var(--primary);
+  --primary-foreground: #FFFFFF;
+  --secondary: #0A0F1E;
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--primary);
+  --accent-foreground: #FFFFFF;
+  --destructive: #ef4444;
+  --border-color: var(--border);
+  --input: var(--border);
+  --ring: var(--primary);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text-primary);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text-primary);
+  --color-primary: var(--primary);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #0A0F1E;
+  --color-secondary-foreground: var(--text-primary);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent: var(--primary);
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #ef4444;
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--primary);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
 }
+
+.font-titillium {
+  font-family: var(--font-titillium), sans-serif;
+}
+
+.font-manrope {
+  font-family: var(--font-manrope), sans-serif;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }

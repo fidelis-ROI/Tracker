@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Client {
+  id            String           @id @default(cuid())
+  name          String
+  slug          String           @unique
+  active        Boolean          @default(true)
+  hasDesigner   Boolean          @default(true)
+  // Campos admin-only
+  ticket        Float?           // Ticket mensal (R$)
+  contractDate  DateTime?        // Data de contratação
+  services      String?          // JSON: ["Tráfego", "Criativos", ...]
+  createdAt     DateTime         @default(now())
+  responses     NpsResponse[]
+  operators     ClientOperator[]
+}
+
+model Collaborator {
+  id                String           @id @default(cuid())
+  name              String
+  role              String           // "gestor_trafego" | "designer"
+  active            Boolean          @default(true)
+  // Campos admin-only
+  salary            Float?           // Salário base (R$)
+  variable          Float?           // Variável/comissão (R$)
+  hireDate          DateTime?        // Data de entrada
+  trafegoResponses  NpsResponse[]    @relation("TrafegoCollab")
+  designerResponses NpsResponse[]    @relation("DesignerCollab")
+  clientPortfolio   ClientOperator[]
+  adminUser         AdminUser?
+}
+
+// Relação explícita: quais clientes cada operador gerencia
+model ClientOperator {
+  id             String       @id @default(cuid())
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id])
+  collaboratorId String
+  collaborator   Collaborator @relation(fields: [collaboratorId], references: [id])
+  assignedAt     DateTime     @default(now())
+
+  @@unique([clientId, collaboratorId])
+}
+
+model NpsResponse {
+  id             String        @id @default(cuid())
+  clientId       String
+  client         Client        @relation(fields: [clientId], references: [id])
+  month          String        // "2025-07"
+  trafegoScore   Int
+  trafegoCollab  String?
+  trafego        Collaborator? @relation("TrafegoCollab", fields: [trafegoCollab], references: [id])
+  designerScore  Int?
+  designerCollab String?
+  designer       Collaborator? @relation("DesignerCollab", fields: [designerCollab], references: [id])
+  feedback       String?
+  submittedAt    DateTime      @default(now())
+}
+
+model AdminUser {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  password       String
+  role           String        @default("admin") // "admin" | "operator"
+  collaboratorId String?       @unique
+  collaborator   Collaborator? @relation(fields: [collaboratorId], references: [id])
+}
