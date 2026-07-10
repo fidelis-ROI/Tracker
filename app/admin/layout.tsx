@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <SessionProvider session={session}>
       <div className="flex min-h-screen">
         {session && <Sidebar />}
-        <main className="flex-1 overflow-auto bg-[#00020A]">{children}</main>
+        <main className="flex-1 overflow-auto bg-[#0B0E17]">{children}</main>
       </div>
     </SessionProvider>
   );
