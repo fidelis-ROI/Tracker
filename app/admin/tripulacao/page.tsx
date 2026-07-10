@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/admin/PageHeader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +46,17 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
+
+function daysAtCompany(hireDate: string | null | undefined): string {
+  if (!hireDate) return "—";
+  const hire = new Date(hireDate);
+  const diff = Math.floor((Date.now() - hire.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff < 30) return `${diff} dias`;
+  if (diff < 365) return `${Math.floor(diff / 30)} meses`;
+  const years = Math.floor(diff / 365);
+  const months = Math.floor((diff % 365) / 30);
+  return months > 0 ? `${years}a ${months}m` : `${years} ano${years > 1 ? "s" : ""}`;
+}
 
 export default function OperadoresPage() {
   const { data: session } = useSession();
@@ -135,17 +145,6 @@ export default function OperadoresPage() {
     setCollabs(prev => prev.map(c => c.id === id ? { ...c, expanded: !c.expanded } : c));
   }
 
-  function daysAtCompany(hireDate: string | null | undefined): string {
-    if (!hireDate) return "—";
-    const hire = new Date(hireDate);
-    const diff = Math.floor((Date.now() - hire.getTime()) / (1000 * 60 * 60 * 24));
-    if (diff < 30) return `${diff} dias`;
-    if (diff < 365) return `${Math.floor(diff / 30)} meses`;
-    const years = Math.floor(diff / 365);
-    const months = Math.floor((diff % 365) / 30);
-    return months > 0 ? `${years}a ${months}m` : `${years} ano${years > 1 ? "s" : ""}`;
-  }
-
   async function onSubmit(data: FormData) {
     setSaving(true);
     try {
@@ -192,92 +191,82 @@ export default function OperadoresPage() {
   const gestores = collabs.filter((c) => c.role === "gestor_trafego");
   const designers = collabs.filter((c) => c.role === "designer");
 
-  function CollabTable({ items, title }: { items: CollabWithStats[]; title: string }) {
+  function CollabSection({ items, title }: { items: CollabWithStats[]; title: string }) {
     return (
-      <div className="mb-8">
-        <h2 className="text-base font-bold font-titillium text-white mb-3">{title}</h2>
+      <div className="mb-9">
+        <h2 className="text-[19px] font-extrabold text-white mb-4">{title}</h2>
         {items.length === 0 ? (
-          <div className="bg-[#0A0F1E] border border-[#1A2140] rounded-xl p-6 text-center">
-            <p className="text-[#8892A4] font-manrope text-sm">Nenhum membro nesta categoria.</p>
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-6 text-center">
+            <p className="text-[#8A8FA3] text-sm">Nenhum membro nesta categoria.</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {items.map((c, i) => (
-              <div key={c.id} className="bg-[#0A0F1E] border border-[#1A2140] rounded-xl overflow-hidden">
-                <div className={`flex items-center gap-4 px-5 py-4 ${i % 2 === 1 ? "bg-[#1A2140]/5" : ""}`}>
-                  {/* Name + role */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-manrope font-medium text-sm">{c.name}</p>
-                    <p className="text-[#8892A4] font-manrope text-xs">
+          <div className="space-y-3">
+            {items.map((c) => (
+              <div key={c.id} className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] overflow-hidden">
+                <div className="flex items-center justify-between px-[26px] py-6">
+                  <div>
+                    <p className="text-[18px] font-bold text-white mb-1">{c.name}</p>
+                    <p className="text-sm text-[#8A8FA3]">
                       {c.role === "gestor_trafego" ? "Gestor de Tráfego" : "Designer"}
-                      {c.hireDate && <span className="ml-2 text-[#8892A4]/60">· {daysAtCompany(c.hireDate)}</span>}
+                      {c.hireDate && <><span className="mx-1">·</span>{daysAtCompany(c.hireDate)}</>}
                     </p>
                   </div>
 
-                  {/* NPS avg */}
-                  <div className="text-right min-w-[60px]">
-                    {c.count > 0 ? (
-                      <div className="flex items-center gap-2 justify-end">
-                        <span className="text-white font-bold font-titillium">{c.avg.toFixed(1)}</span>
-                        <NpsLabel score={Math.round(c.avg)} />
-                      </div>
-                    ) : (
-                      <span className="text-[#8892A4]/40 text-xs">—</span>
-                    )}
-                    <p className="text-xs text-[#8892A4]/60 font-manrope">{c.count} aval.</p>
-                  </div>
+                  <div className="flex items-center gap-[22px]">
+                    <span className="text-xl font-extrabold text-white">{c.count > 0 ? c.avg.toFixed(1) : "—"}</span>
 
-                  {/* Status badge */}
-                  <span className={`text-xs font-semibold font-titillium px-2 py-0.5 rounded-full border ${c.active ? "border-blue-800 text-[#1440FF] bg-blue-900/20" : "border-[#1A2140] text-[#8892A4]"}`}>
-                    {c.active ? "Ativo" : "Inativo"}
-                  </span>
+                    {c.count > 0 && <NpsLabel score={Math.round(c.avg)} />}
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(c)} className="p-1.5 rounded hover:bg-[#1A2140] text-[#8892A4] hover:text-white transition-all" title="Editar">
-                      <Pencil size={14} />
+                    <div className="text-center min-w-[44px]">
+                      <span className={`inline-block rounded-full px-3.5 py-1.5 text-[13px] font-bold ${c.active ? "bg-[#5B21F0]/[0.22] text-[#8B6BFF]" : "bg-white/[0.06] border border-white/10 text-[#9BA0B4]"}`}>
+                        {c.active ? "Ativo" : "Inativo"}
+                      </span>
+                      <p className="text-[12.5px] text-[#6E7285] mt-1">{c.count} aval.</p>
+                    </div>
+
+                    <button onClick={() => openEdit(c)} className="text-[#8A8FA3] hover:text-white transition-all" title="Editar">
+                      <Pencil size={16} />
                     </button>
-                    <button onClick={() => toggleExpand(c.id)} className="p-1.5 rounded hover:bg-[#1A2140] text-[#8892A4] hover:text-white transition-all" title="Ver detalhes">
-                      {c.expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    <button onClick={() => toggleExpand(c.id)} className="text-[#8A8FA3] hover:text-white transition-all" title="Ver detalhes">
+                      {c.expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
                   </div>
                 </div>
 
-                {/* Expanded details */}
                 {c.expanded && (
-                  <div className="border-t border-[#1A2140] px-5 py-4 grid grid-cols-2 gap-4">
+                  <div className="border-t border-white/[0.08] px-[26px] py-5 grid grid-cols-2 gap-4">
                     {isAdmin && (
                       <>
                         <div>
-                          <p className="text-xs text-[#8892A4] font-manrope mb-1">Salário</p>
-                          <p className="text-white font-manrope text-sm">
+                          <p className="text-xs text-[#8A8FA3] mb-1">Salário</p>
+                          <p className="text-white text-sm">
                             {c.salary != null ? `R$ ${c.salary.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#8892A4] font-manrope mb-1">Variável</p>
-                          <p className="text-white font-manrope text-sm">
+                          <p className="text-xs text-[#8A8FA3] mb-1">Variável</p>
+                          <p className="text-white text-sm">
                             {c.variable != null ? `R$ ${c.variable.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#8892A4] font-manrope mb-1">Login</p>
-                          <p className="text-white font-manrope text-sm">{c.adminUser?.email ?? <span className="text-[#8892A4]/40">Sem acesso</span>}</p>
+                          <p className="text-xs text-[#8A8FA3] mb-1">Login</p>
+                          <p className="text-white text-sm">{c.adminUser?.email ?? <span className="text-[#8A8FA3]/40">Sem acesso</span>}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#8892A4] font-manrope mb-1">Data de entrada</p>
-                          <p className="text-white font-manrope text-sm">
+                          <p className="text-xs text-[#8A8FA3] mb-1">Data de entrada</p>
+                          <p className="text-white text-sm">
                             {c.hireDate ? new Date(c.hireDate).toLocaleDateString("pt-BR") : "—"}
                           </p>
                         </div>
                       </>
                     )}
                     <div className="col-span-2">
-                      <p className="text-xs text-[#8892A4] font-manrope mb-2">Carteira de clientes</p>
+                      <p className="text-xs text-[#8A8FA3] mb-2">Carteira de clientes</p>
                       <div className="flex flex-wrap gap-2">
                         {c.clientPortfolio && c.clientPortfolio.length > 0 ? c.clientPortfolio.map(cp => (
-                          <span key={cp.client.id} className="px-2 py-1 bg-[#1A2140] rounded text-xs text-white font-manrope">{cp.client.name}</span>
-                        )) : <span className="text-[#8892A4]/40 text-xs">Nenhum cliente atribuído</span>}
+                          <span key={cp.client.id} className="px-2.5 py-1 bg-white/[0.07] border border-white/10 rounded-[6px] text-xs text-white">{cp.client.name}</span>
+                        )) : <span className="text-[#8A8FA3]/40 text-xs">Nenhum cliente atribuído</span>}
                       </div>
                     </div>
                   </div>
@@ -291,37 +280,37 @@ export default function OperadoresPage() {
   }
 
   return (
-    <div className="p-8">
-      <PageHeader
-        title="Operadores"
-        subtitle="Gerencie a equipe de operadores da agência"
-        action={
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 bg-[#1440FF] hover:bg-[#0027D4] text-white text-sm font-semibold font-titillium px-4 py-2.5 rounded-lg transition-all"
-          >
-            <Plus size={16} />
-            Novo Operador
-          </button>
-        }
-      />
+    <div className="px-16 py-14">
+      <div className="flex items-start justify-between mb-11">
+        <div>
+          <h1 className="text-[34px] font-extrabold text-white tracking-[-0.01em] mb-2">Operadores</h1>
+          <p className="text-base text-[#8A8FA3]">Gerencie a equipe de operadores da agência</p>
+        </div>
+        <button
+          onClick={openCreate}
+          className="flex items-center gap-2 bg-[#5B21F0] hover:bg-[#4A1AD0] text-white text-[15px] font-bold px-[22px] py-3.5 rounded-[10px] whitespace-nowrap transition-all"
+        >
+          <Plus size={16} strokeWidth={2.5} />
+          Novo Operador
+        </button>
+      </div>
 
       {loading ? (
         <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl bg-[#0A0F1E]" />)}
+          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-[14px] bg-white/[0.03]" />)}
         </div>
       ) : (
         <>
-          <CollabTable items={gestores} title="Gestores de Tráfego" />
-          <CollabTable items={designers} title="Designers" />
+          <CollabSection items={gestores} title="Gestores de Tráfego" />
+          <CollabSection items={designers} title="Designers" />
         </>
       )}
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#0A0F1E] border-[#1A2140] text-white max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-[#12141F] border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-titillium">
+            <DialogTitle className="font-sans">
               {editing ? "Editar Operador" : "Novo Operador"}
             </DialogTitle>
           </DialogHeader>
@@ -329,21 +318,21 @@ export default function OperadoresPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
             {/* Nome */}
             <div>
-              <label className="text-xs text-[#8892A4] font-manrope block mb-1">Nome</label>
+              <label className="text-xs text-[#8A8FA3] block mb-1">Nome</label>
               <input
                 {...register("name")}
                 placeholder="Ex: Lucas Mendes"
-                className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
               />
               {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
             </div>
 
             {/* Cargo */}
             <div>
-              <label className="text-xs text-[#8892A4] font-manrope block mb-1">Cargo</label>
+              <label className="text-xs text-[#8A8FA3] block mb-1">Cargo</label>
               <select
                 {...register("role")}
-                className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-4 py-2.5 text-sm text-white font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
               >
                 <option value="gestor_trafego">Gestor de Tráfego</option>
                 <option value="designer">Designer</option>
@@ -353,14 +342,14 @@ export default function OperadoresPage() {
             {/* Clientes da carteira */}
             {roleValue === "gestor_trafego" && clients.length > 0 && (
               <div>
-                <label className="text-xs text-[#8892A4] font-manrope block mb-2">Carteira de clientes</label>
+                <label className="text-xs text-[#8A8FA3] block mb-2">Carteira de clientes</label>
                 <div className="flex flex-wrap gap-2">
                   {clients.map(cl => (
                     <button
                       type="button"
                       key={cl.id}
                       onClick={() => toggleClient(cl.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-manrope border transition-all ${selectedClients.includes(cl.id) ? "bg-[#1440FF]/20 border-[#1440FF] text-white" : "bg-[#00020A] border-[#1A2140] text-[#8892A4] hover:border-[#1440FF]/50"}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedClients.includes(cl.id) ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#5B21F0]/50"}`}
                     >
                       {cl.name}
                     </button>
@@ -371,97 +360,97 @@ export default function OperadoresPage() {
 
             {/* Admin-only fields */}
             {isAdmin && (
-              <div className="border border-[#1A2140] rounded-xl p-4 space-y-4">
+              <div className="border border-white/10 rounded-xl p-4 space-y-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <Lock size={12} className="text-[#1440FF]" />
-                  <span className="text-xs font-semibold text-[#1440FF] font-titillium uppercase tracking-widest">Dados Administrativos</span>
+                  <Lock size={12} className="text-[#A970FF]" />
+                  <span className="text-xs font-semibold text-[#A970FF] uppercase tracking-widest">Dados Administrativos</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-[#8892A4] font-manrope block mb-1">Salário (R$)</label>
+                    <label className="text-xs text-[#8A8FA3] block mb-1">Salário (R$)</label>
                     <input
                       {...register("salary")}
                       type="number"
                       step="0.01"
                       placeholder="0,00"
-                      className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                      className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-[#8892A4] font-manrope block mb-1">Variável (R$)</label>
+                    <label className="text-xs text-[#8A8FA3] block mb-1">Variável (R$)</label>
                     <input
                       {...register("variable")}
                       type="number"
                       step="0.01"
                       placeholder="0,00"
-                      className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                      className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs text-[#8892A4] font-manrope block mb-1">Data de entrada</label>
+                  <label className="text-xs text-[#8A8FA3] block mb-1">Data de entrada</label>
                   <input
                     {...register("hireDate")}
                     type="date"
-                    className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF] [color-scheme:dark]"
+                    className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] [color-scheme:dark]"
                   />
                 </div>
 
                 {/* Login section */}
-                <div className="border-t border-[#1A2140] pt-4">
+                <div className="border-t border-white/10 pt-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <KeyRound size={12} className="text-[#8892A4]" />
-                    <span className="text-xs font-semibold text-[#8892A4] font-titillium uppercase tracking-widest">Acesso ao Operador Portal</span>
+                    <KeyRound size={12} className="text-[#8A8FA3]" />
+                    <span className="text-xs font-semibold text-[#8A8FA3] uppercase tracking-widest">Acesso ao Operador Portal</span>
                   </div>
 
                   {editing && editing.adminUser ? (
                     <div className="space-y-3">
-                      <p className="text-xs text-green-400 font-manrope">✅ Acesso ativo: {editing.adminUser.email}</p>
+                      <p className="text-xs text-[#4ADE80]">✅ Acesso ativo: {editing.adminUser.email}</p>
                       <div>
-                        <label className="text-xs text-[#8892A4] font-manrope block mb-1">Novo email de login</label>
+                        <label className="text-xs text-[#8A8FA3] block mb-1">Novo email de login</label>
                         <input
                           {...register("loginEmail")}
                           type="email"
                           placeholder={editing.adminUser.email}
-                          className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                          className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-[#8892A4] font-manrope block mb-1">Nova senha <span className="opacity-60">(deixe em branco para não alterar)</span></label>
+                        <label className="text-xs text-[#8A8FA3] block mb-1">Nova senha <span className="opacity-60">(deixe em branco para não alterar)</span></label>
                         <input
                           {...register("loginPassword")}
                           type="password"
                           placeholder="••••••••"
-                          className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                          className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                         />
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm text-white font-manrope">Criar acesso ao portal</p>
-                        <Switch checked={!!createLoginValue} onCheckedChange={(v) => setValue("createLogin", v)} />
+                        <p className="text-sm text-white">Criar acesso ao portal</p>
+                        <Switch checked={!!createLoginValue} onCheckedChange={(v) => setValue("createLogin", v)} className="data-checked:!bg-[#5B21F0]" />
                       </div>
                       {createLoginValue && (
                         <>
                           <div>
-                            <label className="text-xs text-[#8892A4] font-manrope block mb-1">Email de login</label>
+                            <label className="text-xs text-[#8A8FA3] block mb-1">Email de login</label>
                             <input
                               {...register("loginEmail")}
                               type="email"
-                              placeholder="operador@nitroads.com.br"
-                              className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                              placeholder="operador@roi.com.br"
+                              className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-[#8892A4] font-manrope block mb-1">Senha inicial</label>
+                            <label className="text-xs text-[#8A8FA3] block mb-1">Senha inicial</label>
                             <input
                               {...register("loginPassword")}
                               type="password"
                               placeholder="••••••••"
-                              className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                              className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                             />
                           </div>
                         </>
@@ -474,15 +463,15 @@ export default function OperadoresPage() {
 
             {/* Active switch */}
             <div className="flex items-center justify-between py-2">
-              <p className="text-sm text-white font-manrope">Operador ativo</p>
-              <Switch checked={activeValue} onCheckedChange={(v) => setValue("active", v)} />
+              <p className="text-sm text-white">Operador ativo</p>
+              <Switch checked={activeValue} onCheckedChange={(v) => setValue("active", v)} className="data-checked:!bg-[#5B21F0]" />
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button type="button" onClick={() => setOpen(false)} className="flex-1 bg-[#1A2140] hover:bg-[#1A2140]/80 text-white font-semibold font-titillium text-sm py-2.5 rounded-lg transition-all">
+              <button type="button" onClick={() => setOpen(false)} className="flex-1 bg-white/[0.06] hover:bg-white/10 text-white font-semibold text-sm py-2.5 rounded-lg transition-all">
                 Cancelar
               </button>
-              <button type="submit" disabled={saving} className="flex-1 bg-[#1440FF] hover:bg-[#0027D4] disabled:opacity-60 text-white font-semibold font-titillium text-sm py-2.5 rounded-lg transition-all">
+              <button type="submit" disabled={saving} className="flex-1 bg-[#5B21F0] hover:bg-[#4A1AD0] disabled:opacity-60 text-white font-semibold text-sm py-2.5 rounded-lg transition-all">
                 {saving ? "Salvando..." : editing ? "Salvar" : "Adicionar"}
               </button>
             </div>
