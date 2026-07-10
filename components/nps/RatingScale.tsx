@@ -18,12 +18,12 @@ export function RatingScale({ value, onChange, disabled }: RatingScaleProps) {
           disabled={disabled}
           onClick={() => onChange(i)}
           className={cn(
-            "w-11 h-11 rounded-lg border text-sm font-bold font-titillium transition-all duration-200",
-            "focus:outline-none focus:ring-2 focus:ring-[#1440FF] focus:ring-offset-2 focus:ring-offset-[#00020A]",
+            "w-11 h-11 rounded-lg border text-sm font-bold transition-all duration-200",
+            "focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] focus:ring-offset-2 focus:ring-offset-[#0B0E17]",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             value === i
-              ? "bg-[#1440FF] border-[#1440FF] text-white shadow-lg shadow-blue-900/40 scale-110"
-              : "bg-[#0A0F1E] border-[#1A2140] text-[#8892A4] hover:border-[#1440FF] hover:text-white hover:bg-[#1440FF]/10"
+              ? "bg-[#7919FF] border-[#7919FF] text-white shadow-lg shadow-[#7919FF]/40 scale-110"
+              : "bg-white/[0.03] border-white/10 text-[#8A8FA3] hover:border-[#7919FF] hover:text-white hover:bg-[#7919FF]/10"
           )}
         >
           {i}
