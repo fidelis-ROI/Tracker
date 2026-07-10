@@ -6,11 +6,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/admin/PageHeader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Copy, ExternalLink, Pencil, Lock } from "lucide-react";
+import { Plus, Copy, ExternalLink, Pencil, Lock, Search } from "lucide-react";
 
 interface Client {
   id: string;
@@ -175,121 +174,122 @@ export default function ClientesPage() {
     toast.success("Link copiado!");
   }
 
+  const gridCols = isAdmin
+    ? "grid-cols-[1.6fr_1.3fr_0.9fr_1.2fr_0.9fr_0.9fr_1fr]"
+    : "grid-cols-[1.6fr_1.3fr_1.2fr_0.9fr_0.9fr_1fr]";
+
   return (
-    <div className="p-8">
-      <PageHeader
-        title="Clientes"
-        subtitle="Gerencie os clientes da agência"
-        action={
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 bg-[#1440FF] hover:bg-[#0027D4] text-white text-sm font-semibold font-titillium px-4 py-2.5 rounded-lg transition-all"
-          >
-            <Plus size={16} />
-            Novo Cliente
-          </button>
-        }
-      />
+    <div className="px-16 py-14">
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-[34px] font-extrabold text-white tracking-[-0.01em] mb-2">Clientes</h1>
+          <p className="text-base text-[#8A8FA3]">Gerencie os clientes da agência</p>
+        </div>
+        <button
+          onClick={openCreate}
+          className="flex items-center gap-2 bg-[#5B21F0] hover:bg-[#4A1AD0] text-white text-[15px] font-bold px-[22px] py-3.5 rounded-[10px] transition-all"
+        >
+          <Plus size={16} strokeWidth={2.5} />
+          Novo Cliente
+        </button>
+      </div>
 
       {loading ? (
         <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl bg-[#0A0F1E]" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-[14px] bg-white/[0.03]" />)}
         </div>
       ) : clients.length === 0 ? (
-        <div className="bg-[#0A0F1E] border border-[#1A2140] rounded-xl p-12 text-center">
-          <p className="text-4xl mb-3">🏎️</p>
-          <p className="text-white font-titillium font-semibold mb-1">Nenhum cliente cadastrado</p>
-          <p className="text-[#8892A4] font-manrope text-sm">Adicione o primeiro cliente da agência.</p>
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] py-[70px] px-5 flex flex-col items-center justify-center gap-3.5">
+          <Search size={34} strokeWidth={1.8} className="text-[#5A5F72]" />
+          <p className="text-base text-[#8A8FA3]">Nenhum cliente cadastrado. Adicione o primeiro cliente da agência.</p>
         </div>
       ) : (
-        <div className="bg-[#0A0F1E] border border-[#1A2140] rounded-xl overflow-hidden">
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#1A2140]">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">Nome</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">Slug</th>
-                  {isAdmin && <th className="text-left px-5 py-3 text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">Ticket</th>}
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">Operador</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">Criativos</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">Status</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.map((c, i) => (
-                  <tr key={c.id} className={`border-b border-[#1A2140]/50 ${i % 2 === 1 ? "bg-[#1A2140]/10" : ""}`}>
-                    <td className="px-5 py-3 text-white font-manrope font-medium">{c.name}</td>
-                    <td className="px-5 py-3">
-                      <code className="text-[#8892A4] font-manrope text-xs bg-[#1A2140] px-2 py-0.5 rounded">/r/{c.slug}</code>
-                    </td>
-                    {isAdmin && (
-                      <td className="px-5 py-3 text-[#8892A4] font-manrope text-xs">
-                        {c.ticket != null ? `R$ ${c.ticket.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}` : <span className="opacity-40">—</span>}
-                      </td>
-                    )}
-                    <td className="px-5 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {c.operators && c.operators.length > 0 ? c.operators.map(o => (
-                          <span key={o.id} className="px-1.5 py-0.5 bg-[#1A2140] rounded text-xs text-white font-manrope">{o.name}</span>
-                        )) : <span className="text-[#8892A4]/40 text-xs">—</span>}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs font-semibold font-titillium px-2 py-0.5 rounded-full border ${c.hasDesigner ? "border-green-800 text-green-400 bg-green-900/20" : "border-[#1A2140] text-[#8892A4]"}`}>
-                        {c.hasDesigner ? "Sim" : "Não"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs font-semibold font-titillium px-2 py-0.5 rounded-full border ${c.active ? "border-blue-800 text-[#1440FF] bg-blue-900/20" : "border-[#1A2140] text-[#8892A4]"}`}>
-                        {c.active ? "Ativo" : "Inativo"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => copyLink(c.slug)} className="p-1.5 rounded hover:bg-[#1A2140] text-[#8892A4] hover:text-white transition-all" title="Copiar link">
-                          <Copy size={14} />
-                        </button>
-                        <a href={`/r/${c.slug}`} target="_blank" className="p-1.5 rounded hover:bg-[#1A2140] text-[#8892A4] hover:text-white transition-all" title="Abrir formulário">
-                          <ExternalLink size={14} />
-                        </a>
-                        <button onClick={() => openEdit(c)} className="p-1.5 rounded hover:bg-[#1A2140] text-[#8892A4] hover:text-white transition-all" title="Editar">
-                          <Pencil size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="min-w-[900px]">
+              <div className={`grid ${gridCols} items-center px-[26px] py-[18px] border-b border-white/[0.08]`}>
+                <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">NOME</span>
+                <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">SLUG</span>
+                {isAdmin && <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">TICKET</span>}
+                <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">OPERADOR</span>
+                <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">CRIATIVOS</span>
+                <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">STATUS</span>
+                <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">AÇÕES</span>
+              </div>
+
+              {clients.map((c, i) => (
+                <div
+                  key={c.id}
+                  className={`grid ${gridCols} items-center px-[26px] py-5 ${i < clients.length - 1 ? "border-b border-white/[0.06]" : ""}`}
+                >
+                  <span className="text-base font-semibold text-white">{c.name}</span>
+                  <span>
+                    <code className="inline-block bg-white/[0.07] border border-white/10 rounded-[6px] px-2.5 py-1 text-[13.5px] text-[#B7BBCB] font-mono">
+                      /r/{c.slug}
+                    </code>
+                  </span>
+                  {isAdmin && (
+                    <span className="text-[14.5px] text-[#B7BBCB]">
+                      {c.ticket != null ? `R$ ${c.ticket.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}` : <span className="opacity-40">—</span>}
+                    </span>
+                  )}
+                  <span className="flex flex-wrap gap-1.5">
+                    {c.operators && c.operators.length > 0 ? c.operators.map(o => (
+                      <span key={o.id} className="bg-white/[0.07] border border-white/10 rounded-[6px] px-3 py-1 text-sm text-white">{o.name}</span>
+                    )) : <span className="text-[#8A8FA3]/40 text-xs">—</span>}
+                  </span>
+                  <span>
+                    <span className={cn_pill(c.hasDesigner ? "green" : "neutral")}>
+                      {c.hasDesigner ? "Sim" : "Não"}
+                    </span>
+                  </span>
+                  <span>
+                    <span className={cn_pill(c.active ? "purple" : "neutral")}>
+                      {c.active ? "Ativo" : "Inativo"}
+                    </span>
+                  </span>
+                  <div className="flex items-center gap-4 text-[#8A8FA3]">
+                    <button onClick={() => copyLink(c.slug)} className="hover:text-white transition-all" title="Copiar link">
+                      <Copy size={16} />
+                    </button>
+                    <a href={`/r/${c.slug}`} target="_blank" className="hover:text-white transition-all" title="Abrir formulário">
+                      <ExternalLink size={16} />
+                    </a>
+                    <button onClick={() => openEdit(c)} className="hover:text-white transition-all" title="Editar">
+                      <Pencil size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#0A0F1E] border-[#1A2140] text-white max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-[#12141F] border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-titillium">
+            <DialogTitle className="font-sans">
               {editing ? "Editar Cliente" : "Novo Cliente"}
             </DialogTitle>
           </DialogHeader>
 
           {createdClient ? (
             <div className="space-y-4">
-              <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
-                <p className="text-green-400 font-semibold font-titillium text-sm mb-2">✅ Cliente cadastrado!</p>
-                <p className="text-[#8892A4] text-xs font-manrope mb-3">Link do Pit Stop Report:</p>
+              <div className="bg-[#5B21F0]/10 border border-[#5B21F0]/30 rounded-xl p-4">
+                <p className="text-[#A970FF] font-semibold text-sm mb-2">✅ Cliente cadastrado!</p>
+                <p className="text-[#8A8FA3] text-xs mb-3">Link do formulário de avaliação:</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-[#00020A] border border-[#1A2140] rounded px-3 py-2 text-xs text-[#1440FF] font-manrope">
+                  <code className="flex-1 bg-[#0B0E17] border border-white/10 rounded px-3 py-2 text-xs text-[#A970FF]">
                     {window.location.origin}/r/{createdClient.slug}
                   </code>
-                  <button onClick={() => copyLink(createdClient.slug)} className="p-2 bg-[#1440FF] rounded-lg text-white hover:bg-[#0027D4] transition-all">
+                  <button onClick={() => copyLink(createdClient.slug)} className="p-2 bg-[#5B21F0] rounded-lg text-white hover:bg-[#4A1AD0] transition-all">
                     <Copy size={14} />
                   </button>
                 </div>
               </div>
-              <button onClick={() => { setOpen(false); setCreatedClient(null); }} className="w-full bg-[#1A2140] hover:bg-[#1A2140]/80 text-white font-semibold font-titillium text-sm py-2.5 rounded-lg transition-all">
+              <button onClick={() => { setOpen(false); setCreatedClient(null); }} className="w-full bg-white/[0.06] hover:bg-white/10 text-white font-semibold text-sm py-2.5 rounded-lg transition-all">
                 Fechar
               </button>
             </div>
@@ -297,24 +297,24 @@ export default function ClientesPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
               {/* Nome */}
               <div>
-                <label className="text-xs text-[#8892A4] font-manrope block mb-1">Nome do cliente</label>
+                <label className="text-xs text-[#8A8FA3] block mb-1">Nome do cliente</label>
                 <input
                   {...register("name")}
                   placeholder="Ex: Autoforce SP"
-                  className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                  className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                 />
                 {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
               </div>
 
               {/* Slug */}
               <div>
-                <label className="text-xs text-[#8892A4] font-manrope block mb-1">Slug (URL)</label>
+                <label className="text-xs text-[#8A8FA3] block mb-1">Slug (URL)</label>
                 <div className="flex items-center">
-                  <span className="bg-[#1A2140] border border-r-0 border-[#1A2140] rounded-l-lg px-3 py-2.5 text-xs text-[#8892A4] font-manrope">/r/</span>
+                  <span className="bg-white/[0.06] border border-r-0 border-white/10 rounded-l-lg px-3 py-2.5 text-xs text-[#8A8FA3]">/r/</span>
                   <input
                     {...register("slug")}
                     placeholder="autoforce-sp"
-                    className="flex-1 bg-[#00020A] border border-[#1A2140] rounded-r-lg px-4 py-2.5 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                    className="flex-1 bg-[#0B0E17] border border-white/10 rounded-r-lg px-4 py-2.5 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                   />
                 </div>
                 {errors.slug && <p className="text-red-400 text-xs mt-1">{errors.slug.message}</p>}
@@ -323,14 +323,14 @@ export default function ClientesPage() {
               {/* Operadores */}
               {operators.length > 0 && (
                 <div>
-                  <label className="text-xs text-[#8892A4] font-manrope block mb-2">Operadores responsáveis</label>
+                  <label className="text-xs text-[#8A8FA3] block mb-2">Operadores responsáveis</label>
                   <div className="flex flex-wrap gap-2">
                     {operators.map(op => (
                       <button
                         type="button"
                         key={op.id}
                         onClick={() => toggleOp(op.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-manrope border transition-all ${selectedOps.includes(op.id) ? "bg-[#1440FF]/20 border-[#1440FF] text-white" : "bg-[#00020A] border-[#1A2140] text-[#8892A4] hover:border-[#1440FF]/50"}`}
+                        className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedOps.includes(op.id) ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#5B21F0]/50"}`}
                       >
                         {op.name}
                       </button>
@@ -341,39 +341,39 @@ export default function ClientesPage() {
 
               {/* Admin-only fields */}
               {isAdmin && (
-                <div className="border border-[#1A2140] rounded-xl p-4 space-y-4">
+                <div className="border border-white/10 rounded-xl p-4 space-y-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <Lock size={12} className="text-[#1440FF]" />
-                    <span className="text-xs font-semibold text-[#1440FF] font-titillium uppercase tracking-widest">Dados Administrativos</span>
+                    <Lock size={12} className="text-[#A970FF]" />
+                    <span className="text-xs font-semibold text-[#A970FF] uppercase tracking-widest">Dados Administrativos</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-[#8892A4] font-manrope block mb-1">Ticket (R$)</label>
+                      <label className="text-xs text-[#8A8FA3] block mb-1">Ticket (R$)</label>
                       <input
                         {...register("ticket")}
                         type="number"
                         step="0.01"
                         placeholder="0,00"
-                        className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                        className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-[#8892A4] font-manrope block mb-1">Data de contratação</label>
+                      <label className="text-xs text-[#8A8FA3] block mb-1">Data de contratação</label>
                       <input
                         {...register("contractDate")}
                         type="date"
-                        className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF] [color-scheme:dark]"
+                        className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] [color-scheme:dark]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-xs text-[#8892A4] font-manrope block mb-1">Serviços contratados <span className="opacity-60">(separados por vírgula)</span></label>
+                    <label className="text-xs text-[#8A8FA3] block mb-1">Serviços contratados <span className="opacity-60">(separados por vírgula)</span></label>
                     <input
                       {...register("services")}
                       placeholder="Tráfego pago, Social media, E-mail marketing"
-                      className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF]"
+                      className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                     />
                   </div>
                 </div>
@@ -382,22 +382,22 @@ export default function ClientesPage() {
               {/* Switches */}
               <div className="flex items-center justify-between py-2">
                 <div>
-                  <p className="text-sm text-white font-manrope">Contrata serviço de criativos?</p>
-                  <p className="text-xs text-[#8892A4] font-manrope">Exibe bloco de avaliação de designer</p>
+                  <p className="text-sm text-white">Contrata serviço de criativos?</p>
+                  <p className="text-xs text-[#8A8FA3]">Exibe bloco de avaliação de designer</p>
                 </div>
-                <Switch checked={hasDesignerValue} onCheckedChange={(v) => setValue("hasDesigner", v)} />
+                <Switch checked={hasDesignerValue} onCheckedChange={(v) => setValue("hasDesigner", v)} className="data-checked:!bg-[#5B21F0]" />
               </div>
 
               <div className="flex items-center justify-between py-2">
-                <p className="text-sm text-white font-manrope">Cliente ativo</p>
-                <Switch checked={activeValue} onCheckedChange={(v) => setValue("active", v)} />
+                <p className="text-sm text-white">Cliente ativo</p>
+                <Switch checked={activeValue} onCheckedChange={(v) => setValue("active", v)} className="data-checked:!bg-[#5B21F0]" />
               </div>
 
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setOpen(false)} className="flex-1 bg-[#1A2140] hover:bg-[#1A2140]/80 text-white font-semibold font-titillium text-sm py-2.5 rounded-lg transition-all">
+                <button type="button" onClick={() => setOpen(false)} className="flex-1 bg-white/[0.06] hover:bg-white/10 text-white font-semibold text-sm py-2.5 rounded-lg transition-all">
                   Cancelar
                 </button>
-                <button type="submit" disabled={saving} className="flex-1 bg-[#1440FF] hover:bg-[#0027D4] disabled:opacity-60 text-white font-semibold font-titillium text-sm py-2.5 rounded-lg transition-all">
+                <button type="submit" disabled={saving} className="flex-1 bg-[#5B21F0] hover:bg-[#4A1AD0] disabled:opacity-60 text-white font-semibold text-sm py-2.5 rounded-lg transition-all">
                   {saving ? "Salvando..." : editing ? "Salvar" : "Cadastrar"}
                 </button>
               </div>
@@ -407,4 +407,11 @@ export default function ClientesPage() {
       </Dialog>
     </div>
   );
+}
+
+function cn_pill(variant: "purple" | "green" | "neutral") {
+  const base = "inline-block rounded-full px-3.5 py-1.5 text-[13px] font-semibold";
+  if (variant === "purple") return `${base} bg-[#5B21F0]/[0.22] text-[#8B6BFF] font-bold`;
+  if (variant === "green") return `${base} bg-[#22C55E]/[0.15] border border-[#22C55E]/30 text-[#4ADE80]`;
+  return `${base} bg-white/[0.06] border border-white/10 text-[#9BA0B4] font-normal`;
 }
