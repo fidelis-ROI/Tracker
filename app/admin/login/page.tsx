@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Gauge } from "lucide-react";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -53,53 +52,58 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#00020A] flex items-center justify-center p-6">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-[#1440FF] rounded-2xl mb-4 shadow-lg shadow-blue-900/40">
-            <Gauge size={28} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold font-titillium text-white">NitroADS Tracker</h1>
-          <p className="text-[#8892A4] text-sm font-manrope mt-1">Torre de Comando</p>
+    <div className="min-h-screen bg-[#05070d] flex items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-[420px] flex flex-col items-center animate-[roi-fade-up_0.5s_ease-out]">
+        <div className="w-[72px] h-[72px] rounded-[20px] bg-white flex items-center justify-center p-4 mb-[22px] shadow-[0_8px_30px_rgba(121,25,255,0.35)]">
+          <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+            <path d="M4 16L10 10L14 14L20 6" stroke="#7919FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M14 6H20V12" stroke="#7919FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <h1 className="text-[30px] font-extrabold text-[#F5F7FF] tracking-[-0.02em] text-center">ROI Tracker</h1>
+        <p className="text-[15px] text-[#7C86A8] mt-1.5 text-center">Central de Performance</p>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full mt-10">
           <div>
-            <label className="text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium block mb-1.5">Email</label>
+            <label className="text-[11px] font-bold tracking-[0.08em] text-[#6B7494] block mb-2">E-MAIL DE ACESSO</label>
             <input
               {...register("email")}
               type="email"
-              placeholder="seu@email.com.br"
+              placeholder="contato@roi.com.br"
               autoComplete="email"
-              className="w-full bg-[#0A0F1E] border border-[#1A2140] rounded-lg px-4 py-3 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF] focus:border-transparent transition-all"
+              className="w-full box-border bg-[#EEF1FA] border-none rounded-xl px-[18px] py-4 text-[15px] text-[#12141c] placeholder:text-[#12141c]/40 outline-none focus:ring-2 focus:ring-[#7919FF] transition-all"
             />
-            {errors.email && <p className="text-red-400 text-xs mt-1 font-manrope">{errors.email.message}</p>}
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium block mb-1.5">Senha</label>
+          <div className="mt-[22px]">
+            <label className="text-[11px] font-bold tracking-[0.08em] text-[#6B7494] block mb-2">SENHA</label>
             <input
               {...register("password")}
               type="password"
-              placeholder="••••••••"
+              placeholder="••••••••••••••"
               autoComplete="current-password"
-              className="w-full bg-[#0A0F1E] border border-[#1A2140] rounded-lg px-4 py-3 text-sm text-white placeholder:text-[#8892A4]/50 font-manrope focus:outline-none focus:ring-2 focus:ring-[#1440FF] focus:border-transparent transition-all"
+              className="w-full box-border bg-[#EEF1FA] border-none rounded-xl px-[18px] py-4 text-[15px] text-[#12141c] placeholder:text-[#12141c]/40 outline-none focus:ring-2 focus:ring-[#7919FF] transition-all"
             />
-            {errors.password && <p className="text-red-400 text-xs mt-1 font-manrope">{errors.password.message}</p>}
+            {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1440FF] hover:bg-[#0027D4] disabled:opacity-60 text-white font-bold font-titillium text-sm py-3.5 rounded-xl transition-all duration-200 mt-2 shadow-lg shadow-blue-900/30"
+            className="w-full mt-7 bg-[#7919FF] hover:bg-[#6A0FE8] disabled:opacity-60 border-none rounded-xl px-[18px] py-[17px] text-[15px] font-bold text-white flex items-center justify-center gap-2 shadow-[0_10px_24px_rgba(121,25,255,0.4)] transition-all"
           >
-            {loading ? "Conectando..." : "Entrar na Torre de Comando →"}
+            {loading ? "Conectando..." : "Acessar painel"}
+            {!loading && (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
           </button>
         </form>
 
-        <p className="text-center text-xs text-[#8892A4]/50 font-manrope mt-8">
-          Performance & Resultados — Go Racers! 🏎️
-        </p>
+        <p className="mt-[26px] text-[13px] text-[#525C7A] text-center">Dados que viram decisão.</p>
       </div>
     </div>
   );
