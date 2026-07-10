@@ -9,6 +9,7 @@ const updateSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
   hasDesigner: z.boolean().optional(),
   active: z.boolean().optional(),
+  brand: z.enum(["roi", "nitroads"]).optional(),
   ticket: z.number().nullable().optional(),
   contractDate: z.string().nullable().optional(),
   services: z.array(z.string()).nullable().optional(),

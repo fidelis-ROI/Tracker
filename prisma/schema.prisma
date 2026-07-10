@@ -13,6 +13,7 @@ model Client {
   slug          String           @unique
   active        Boolean          @default(true)
   hasDesigner   Boolean          @default(true)
+  brand         String           @default("roi") // "roi" | "nitroads"
   // Campos admin-only
   ticket        Float?           // Ticket mensal (R$)
   contractDate  DateTime?        // Data de contratação

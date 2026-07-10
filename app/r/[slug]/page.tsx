@@ -6,17 +6,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { RatingScale } from "@/components/nps/RatingScale";
 import { NpsLabel } from "@/components/nps/NpsLabel";
+import { RatingScale } from "@/components/nps/RatingScale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Client {
   id: string;
   name: string;
   slug: string;
   hasDesigner: boolean;
+  brand: "roi" | "nitroads";
 }
 
 interface Collaborator {
@@ -43,6 +45,45 @@ function monthLabel(month: string) {
   const [year, m] = month.split("-");
   const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
   return `${months[parseInt(m) - 1]} ${year}`;
+}
+
+// --- Tema NitroADS (azul / F1) — badge de nota local, sem depender do NpsLabel roxo ---
+function nitroBadge(score: number) {
+  if (score <= 6) return { label: "Detrator", emoji: "🔴", cls: "text-red-400 bg-red-900/30 border-red-800" };
+  if (score <= 8) return { label: "Neutro", emoji: "🟡", cls: "text-yellow-400 bg-yellow-900/30 border-yellow-800" };
+  return { label: "Promotor", emoji: "🟢", cls: "text-green-400 bg-green-900/30 border-green-800" };
+}
+
+function NitroNpsLabel({ score }: { score: number }) {
+  const { label, emoji, cls } = nitroBadge(score);
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold", cls)}>
+      {emoji} {label}
+    </span>
+  );
+}
+
+function NitroRatingScale({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {Array.from({ length: 11 }, (_, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onChange(i)}
+          className={cn(
+            "w-11 h-11 rounded-lg border text-sm font-bold transition-all duration-200",
+            "focus:outline-none focus:ring-2 focus:ring-[#1440FF] focus:ring-offset-2 focus:ring-offset-[#00020A]",
+            value === i
+              ? "bg-[#1440FF] border-[#1440FF] text-white shadow-lg shadow-blue-900/40 scale-110"
+              : "bg-[#0A0F1E] border-[#1A2140] text-[#8892A4] hover:border-[#1440FF] hover:text-white hover:bg-[#1440FF]/10"
+          )}
+        >
+          {i}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export default function NpsFormPage() {
@@ -123,6 +164,8 @@ export default function NpsFormPage() {
     }
   }
 
+  const isNitro = client?.brand === "nitroads";
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0B0E17] flex flex-col items-center justify-center p-6">
@@ -147,7 +190,15 @@ export default function NpsFormPage() {
   }
 
   if (alreadySubmitted) {
-    return (
+    return isNitro ? (
+      <div className="min-h-screen bg-[#00020A] flex flex-col items-center justify-center p-6 text-center">
+        <p className="text-6xl mb-4">⏱️</p>
+        <h1 className="text-2xl font-bold font-titillium text-white">Pit Stop já realizado!</h1>
+        <p className="text-[#8892A4] mt-2 font-manrope max-w-sm">
+          Você já enviou sua avaliação de {monthLabel(currentMonth())}. Volte no próximo mês, Piloto!
+        </p>
+      </div>
+    ) : (
       <div className="min-h-screen bg-[#0B0E17] flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-2xl bg-[#7C1EFB]/[0.16] border border-[#7C1EFB]/40 flex items-center justify-center mb-5">
           <Check size={26} className="text-[#A970FF]" strokeWidth={2.5} />
@@ -161,7 +212,19 @@ export default function NpsFormPage() {
   }
 
   if (submitted) {
-    return (
+    return isNitro ? (
+      <div className="min-h-screen bg-[#00020A] flex flex-col items-center justify-center p-6 text-center">
+        <div className="animate-bounce text-6xl mb-6">🏁</div>
+        <h1 className="text-3xl font-bold font-titillium text-white mb-2">
+          Pit Stop concluído.
+        </h1>
+        <p className="text-xl font-titillium text-[#1440FF] font-semibold">Obrigado, Piloto.</p>
+        <p className="text-[#8892A4] mt-3 font-manrope max-w-sm">
+          Sua telemetria foi recebida pela escuderia. Isso nos faz andar mais rápido na próxima volta.
+        </p>
+        <p className="text-2xl mt-6">Go Racers! 🚀</p>
+      </div>
+    ) : (
       <div className="min-h-screen bg-[#0B0E17] flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-2xl bg-[#7C1EFB]/[0.16] border border-[#7C1EFB]/40 flex items-center justify-center mb-5">
           <Check size={26} className="text-[#A970FF]" strokeWidth={2.5} />
@@ -177,9 +240,160 @@ export default function NpsFormPage() {
     );
   }
 
+  // --- Tema NitroADS (azul / F1) ---
+  if (isNitro) {
+    return (
+      <div className="min-h-screen bg-[#00020A] py-10 px-4">
+        <header className="text-center mb-10 max-w-xl mx-auto">
+          <div className="inline-flex items-center gap-2 mb-6">
+            <div className="w-8 h-8 bg-[#1440FF] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold font-titillium text-sm">N</span>
+            </div>
+            <span className="text-white font-bold font-titillium text-lg">NitroADS Tracker</span>
+          </div>
+          <h1 className="text-3xl font-bold font-titillium text-white mb-2">
+            Pit Stop Report
+          </h1>
+          <p className="text-xl font-titillium text-[#1440FF] font-semibold">{client?.name}</p>
+          <p className="text-[#8892A4] mt-2 font-manrope text-sm">
+            Sua avaliação é o combustível da nossa escuderia.
+          </p>
+          <div className="mt-3 inline-block px-3 py-1 rounded-full border border-[#1A2140] bg-[#0A0F1E] text-[#8892A4] text-xs font-manrope">
+            Avaliação de {monthLabel(currentMonth())}
+          </div>
+        </header>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl mx-auto space-y-6">
+          <div className="bg-[#0A0F1E] border border-[#1A2140] rounded-xl p-6">
+            <h2 className="text-base font-semibold font-titillium text-white mb-1">
+              Operação de Tráfego
+            </h2>
+            <p className="text-sm text-[#8892A4] font-manrope mb-4">
+              Como foi a performance do seu Gestor de Tráfego este mês?
+            </p>
+
+            <NitroRatingScale
+              value={trafegoScore ?? null}
+              onChange={(v) => setValue("trafegoScore", v, { shouldValidate: true })}
+            />
+
+            {trafegoScore !== undefined && (
+              <div className="mt-3">
+                <NitroNpsLabel score={trafegoScore} />
+              </div>
+            )}
+
+            {errors.trafegoScore && (
+              <p className="text-red-400 text-xs mt-2 font-manrope">{errors.trafegoScore.message}</p>
+            )}
+
+            {gestores.length > 0 && (
+              <div className="mt-4">
+                <label className="text-xs text-[#8892A4] font-manrope mb-1.5 block">
+                  Qual gestor avaliou? (opcional)
+                </label>
+                <Select onValueChange={(v) => setValue("trafegoCollab", v as string | undefined)}>
+                  <SelectTrigger className="bg-[#00020A] border-[#1A2140] text-white">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0A0F1E] border-[#1A2140]">
+                    {gestores.map((g) => (
+                      <SelectItem key={g.id} value={g.id} className="text-white hover:bg-[#1A2140]">
+                        {g.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {client?.hasDesigner && (
+            <div className="bg-[#0A0F1E] border border-[#1A2140] rounded-xl p-6">
+              <h2 className="text-base font-semibold font-titillium text-white mb-1">
+                Criativos
+              </h2>
+              <p className="text-sm text-[#8892A4] font-manrope mb-4">
+                E os criativos entregues este mês?
+              </p>
+
+              <NitroRatingScale
+                value={designerScore ?? null}
+                onChange={(v) => setValue("designerScore", v, { shouldValidate: true })}
+              />
+
+              {designerScore !== undefined && (
+                <div className="mt-3">
+                  <NitroNpsLabel score={designerScore} />
+                </div>
+              )}
+
+              {designers.length > 0 && (
+                <div className="mt-4">
+                  <label className="text-xs text-[#8892A4] font-manrope mb-1.5 block">
+                    Qual designer avaliou? (opcional)
+                  </label>
+                  <Select onValueChange={(v) => setValue("designerCollab", v as string | undefined)}>
+                    <SelectTrigger className="bg-[#00020A] border-[#1A2140] text-white">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0A0F1E] border-[#1A2140]">
+                      {designers.map((d) => (
+                        <SelectItem key={d.id} value={d.id} className="text-white hover:bg-[#1A2140]">
+                          {d.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="bg-[#0A0F1E] border border-[#1A2140] rounded-xl p-6">
+            <h2 className="text-base font-semibold font-titillium text-white mb-1">
+              Mensagem para a Equipe
+            </h2>
+            <p className="text-sm text-[#8892A4] font-manrope mb-4">
+              Deixe seu recado. O que foi bem? O que podemos melhorar?
+            </p>
+            <textarea
+              {...{
+                onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setValue("feedback", e.target.value),
+              }}
+              placeholder="Seja o nosso engenheiro de pista — todo feedback nos faz andar mais rápido."
+              rows={4}
+              className="w-full bg-[#00020A] border border-[#1A2140] rounded-lg px-4 py-3 text-sm text-white placeholder:text-[#8892A4] font-manrope resize-none focus:outline-none focus:ring-2 focus:ring-[#1440FF] focus:border-transparent transition-all"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-[#1440FF] hover:bg-[#0027D4] disabled:opacity-60 text-white font-bold font-titillium text-base py-4 rounded-xl transition-all duration-200 shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2"
+          >
+            {submitting ? (
+              <>
+                <span className="animate-spin text-lg">⚙️</span>
+                Enviando telemetria...
+              </>
+            ) : (
+              "Enviar Telemetria →"
+            )}
+          </button>
+
+          <p className="text-center text-xs text-[#8892A4] font-manrope pb-4">
+            Performance & Resultados — NitroADS Tracker
+          </p>
+        </form>
+      </div>
+    );
+  }
+
+  // --- Tema ROI Tracker (roxo) ---
   return (
     <div className="min-h-screen bg-[#0B0E17] py-14 px-4">
-      {/* Header */}
       <header className="text-center mb-10 max-w-xl mx-auto">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white shadow-[0_8px_30px_rgba(121,25,255,0.35)] mb-5 p-3">
           <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
@@ -200,7 +414,6 @@ export default function NpsFormPage() {
       </header>
 
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl mx-auto space-y-5">
-        {/* Bloco 1: Aquisição */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-6">
           <h2 className="text-base font-bold text-white mb-1">
             Operação de Tráfego
@@ -245,7 +458,6 @@ export default function NpsFormPage() {
           )}
         </div>
 
-        {/* Bloco 2: Entrega (condicional) */}
         {client?.hasDesigner && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-6">
             <h2 className="text-base font-bold text-white mb-1">
@@ -288,7 +500,6 @@ export default function NpsFormPage() {
           </div>
         )}
 
-        {/* Bloco 3: Feedback */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-6">
           <h2 className="text-base font-bold text-white mb-1">
             Mensagem para a Equipe

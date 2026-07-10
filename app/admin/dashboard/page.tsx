@@ -18,7 +18,7 @@ interface Response {
 }
 
 interface Collaborator { id: string; name: string; role: string; }
-interface Client { id: string; name: string; }
+interface Client { id: string; name: string; brand: "roi" | "nitroads"; ticket?: number | null; }
 interface CollabStat {
   id: string; name: string; role: string; scores: number[];
   avg: number; clients: string[]; expanded: boolean;
@@ -141,6 +141,22 @@ export default function DashboardPage() {
   const neutrals = allScores.filter(s => s === 7 || s === 8).length;
   const detractors = allScores.filter(s => s <= 6).length;
 
+  // Segregação por marca (ROI vs NitroAds)
+  const clientBrandMap = new Map(clients.map(c => [c.id, c.brand]));
+  const roiResponses = responses.filter(r => clientBrandMap.get(r.client.id) === "roi");
+  const nitroResponses = responses.filter(r => clientBrandMap.get(r.client.id) === "nitroads");
+  const npsRoi = calcNps(roiResponses, "trafegoScore");
+  const npsNitro = calcNps(nitroResponses, "trafegoScore");
+
+  const roiClients = clients.filter(c => c.brand === "roi");
+  const nitroClients = clients.filter(c => c.brand === "nitroads");
+  function avgTicket(list: Client[]) {
+    const tickets = list.map(c => c.ticket).filter((t): t is number => t != null);
+    return tickets.length ? tickets.reduce((a, b) => a + b, 0) / tickets.length : null;
+  }
+  const ticketRoi = avgTicket(roiClients);
+  const ticketNitro = avgTicket(nitroClients);
+
   function toggleCollab(id: string) {
     setCollabStats(prev => prev.map(c => c.id === id ? { ...c, expanded: !c.expanded } : c));
   }
@@ -182,6 +198,33 @@ export default function DashboardPage() {
           <MetricTile label="DISTRIBUIÇÃO" value={`${Math.round((promoters / total) * 100)}% P`} icon={BarChart3} sub={`${Math.round((neutrals / total) * 100)}% N · ${Math.round((detractors / total) * 100)}% D`} />
         </div>
       )}
+
+      {/* Segregação por Marca */}
+      <div className="mb-9">
+        <h2 className="text-[21px] font-extrabold text-white mb-4">Por Marca</h2>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[14px] bg-white/[0.03]" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <BrandCard
+              label="Cliente ROI"
+              accent="purple"
+              nps={npsRoi}
+              ticket={ticketRoi}
+              count={roiClients.length}
+            />
+            <BrandCard
+              label="Cliente NitroAds"
+              accent="blue"
+              nps={npsNitro}
+              ticket={ticketNitro}
+              count={nitroClients.length}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Respostas do Período */}
       <div className="mb-9">
@@ -278,6 +321,34 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function BrandCard({ label, accent, nps, ticket, count }: { label: string; accent: "purple" | "blue"; nps: number | null; ticket: number | null; count: number }) {
+  const colors = accent === "purple"
+    ? { border: "border-[#7C1EFB]/30", dot: "bg-[#A970FF]", text: "text-[#A970FF]" }
+    : { border: "border-[#1440FF]/30", dot: "bg-[#5B8DFF]", text: "text-[#5B8DFF]" };
+
+  return (
+    <div className={`bg-white/[0.03] border ${colors.border} rounded-[14px] p-[22px]`}>
+      <div className="flex items-center gap-2 mb-5">
+        <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
+        <span className={`text-sm font-bold ${colors.text}`}>{label}</span>
+        <span className="text-xs text-[#8A8FA3] ml-auto">{count} cliente{count !== 1 ? "s" : ""}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3] mb-1.5">NPS MÉDIO</p>
+          <p className="text-2xl font-extrabold text-white">{nps !== null ? `${nps > 0 ? "+" : ""}${nps}` : "—"}</p>
+        </div>
+        <div>
+          <p className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3] mb-1.5">TICKET MÉDIO</p>
+          <p className="text-2xl font-extrabold text-white">
+            {ticket !== null ? `R$ ${ticket.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "—"}
+          </p>
+        </div>
       </div>
     </div>
   );

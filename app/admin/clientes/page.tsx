@@ -17,6 +17,7 @@ interface Client {
   slug: string;
   hasDesigner: boolean;
   active: boolean;
+  brand: "roi" | "nitroads";
   createdAt: string;
   ticket?: number | null;
   contractDate?: string | null;
@@ -31,6 +32,7 @@ const schema = z.object({
   slug: z.string().min(1, "Slug obrigatório").regex(/^[a-z0-9-]+$/, "Apenas letras minúsculas, números e hífens"),
   hasDesigner: z.boolean(),
   active: z.boolean(),
+  brand: z.enum(["roi", "nitroads"]),
   ticket: z.string().optional(),
   contractDate: z.string().optional(),
   services: z.string().optional(),
@@ -69,12 +71,13 @@ export default function ClientesPage() {
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { hasDesigner: true, active: true },
+    defaultValues: { hasDesigner: true, active: true, brand: "roi" },
   });
 
   const nameValue = watch("name");
   const hasDesignerValue = watch("hasDesigner");
   const activeValue = watch("active");
+  const brandValue = watch("brand");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -102,7 +105,7 @@ export default function ClientesPage() {
     setEditing(null);
     setCreatedClient(null);
     setSelectedOps([]);
-    reset({ name: "", slug: "", hasDesigner: true, active: true, ticket: "", contractDate: "", services: "" });
+    reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "", services: "" });
     setOpen(true);
   }
 
@@ -116,6 +119,7 @@ export default function ClientesPage() {
       slug: client.slug,
       hasDesigner: client.hasDesigner,
       active: client.active,
+      brand: client.brand,
       ticket: client.ticket?.toString() ?? "",
       contractDate: client.contractDate ? client.contractDate.slice(0, 10) : "",
       services: services.join(", "),
@@ -135,6 +139,7 @@ export default function ClientesPage() {
         slug: data.slug,
         hasDesigner: data.hasDesigner,
         active: data.active,
+        brand: data.brand,
         operatorIds: selectedOps,
       };
 
@@ -175,8 +180,8 @@ export default function ClientesPage() {
   }
 
   const gridCols = isAdmin
-    ? "grid-cols-[1.6fr_1.3fr_0.9fr_1.2fr_0.9fr_0.9fr_1fr]"
-    : "grid-cols-[1.6fr_1.3fr_1.2fr_0.9fr_0.9fr_1fr]";
+    ? "grid-cols-[1.4fr_1.1fr_0.8fr_0.9fr_1.1fr_0.8fr_0.8fr_1fr]"
+    : "grid-cols-[1.4fr_1.1fr_0.9fr_1.1fr_0.8fr_0.8fr_1fr]";
 
   return (
     <div className="px-16 py-14">
@@ -210,6 +215,7 @@ export default function ClientesPage() {
               <div className={`grid ${gridCols} items-center px-[26px] py-[18px] border-b border-white/[0.08]`}>
                 <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">NOME</span>
                 <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">SLUG</span>
+                <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">MARCA</span>
                 {isAdmin && <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">TICKET</span>}
                 <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">OPERADOR</span>
                 <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">CRIATIVOS</span>
@@ -227,6 +233,17 @@ export default function ClientesPage() {
                     <code className="inline-block bg-white/[0.07] border border-white/10 rounded-[6px] px-2.5 py-1 text-[13.5px] text-[#B7BBCB] font-mono">
                       /r/{c.slug}
                     </code>
+                  </span>
+                  <span>
+                    {c.brand === "nitroads" ? (
+                      <span className="inline-block rounded-full px-3.5 py-1.5 text-[13px] font-semibold bg-[#1440FF]/[0.18] border border-[#1440FF]/30 text-[#5B8DFF]">
+                        NitroAds
+                      </span>
+                    ) : (
+                      <span className="inline-block rounded-full px-3.5 py-1.5 text-[13px] font-semibold bg-[#5B21F0]/[0.22] text-[#8B6BFF]">
+                        ROI
+                      </span>
+                    )}
                   </span>
                   {isAdmin && (
                     <span className="text-[14.5px] text-[#B7BBCB]">
@@ -318,6 +335,28 @@ export default function ClientesPage() {
                   />
                 </div>
                 {errors.slug && <p className="text-red-400 text-xs mt-1">{errors.slug.message}</p>}
+              </div>
+
+              {/* Marca */}
+              <div>
+                <label className="text-xs text-[#8A8FA3] block mb-2">Marca do cliente</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setValue("brand", "roi")}
+                    className={`px-3 py-2.5 rounded-lg text-sm font-semibold border transition-all ${brandValue === "roi" ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#5B21F0]/50"}`}
+                  >
+                    Cliente ROI
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setValue("brand", "nitroads")}
+                    className={`px-3 py-2.5 rounded-lg text-sm font-semibold border transition-all ${brandValue === "nitroads" ? "bg-[#1440FF]/20 border-[#1440FF] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#1440FF]/50"}`}
+                  >
+                    Cliente NitroAds
+                  </button>
+                </div>
+                <p className="text-xs text-[#8A8FA3]/70 mt-1.5">Define a estética da tela pública de avaliação (/r/{"{"}slug{"}"}).</p>
               </div>
 
               {/* Operadores */}

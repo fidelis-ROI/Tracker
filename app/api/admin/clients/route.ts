@@ -9,6 +9,7 @@ const createSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
   hasDesigner: z.boolean().default(true),
   active: z.boolean().default(true),
+  brand: z.enum(["roi", "nitroads"]).default("roi"),
   ticket: z.number().optional(),
   contractDate: z.string().optional(),
   services: z.array(z.string()).optional(),
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
       slug: true,
       active: true,
       hasDesigner: true,
+      brand: true,
       createdAt: true,
       ...(isAdmin ? { ticket: true, contractDate: true, services: true } : {}),
       operators: {
@@ -66,6 +68,7 @@ export async function POST(req: NextRequest) {
         slug: rest.slug,
         hasDesigner: rest.hasDesigner,
         active: rest.active,
+        brand: rest.brand,
         ticket: rest.ticket,
         contractDate: rest.contractDate ? new Date(rest.contractDate) : undefined,
         services: rest.services ? JSON.stringify(rest.services) : undefined,

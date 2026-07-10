@@ -59,12 +59,13 @@ async function main() {
   // Clientes
   const client1 = await prisma.client.upsert({
     where: { slug: "autoforce-sp" },
-    update: {},
+    update: { brand: "roi" },
     create: {
       name: "Autoforce SP",
       slug: "autoforce-sp",
       active: true,
       hasDesigner: true,
+      brand: "roi",
       ticket: 3500,
       contractDate: new Date("2023-04-01"),
       services: JSON.stringify(["Tráfego", "Criativos"]),
@@ -73,12 +74,13 @@ async function main() {
 
   const client2 = await prisma.client.upsert({
     where: { slug: "moto-parts" },
-    update: {},
+    update: { brand: "nitroads" },
     create: {
       name: "Moto Parts Brasil",
       slug: "moto-parts",
       active: true,
       hasDesigner: false,
+      brand: "nitroads",
       ticket: 1800,
       contractDate: new Date("2023-06-15"),
       services: JSON.stringify(["Tráfego"]),
