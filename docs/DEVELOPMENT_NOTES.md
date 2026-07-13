@@ -164,32 +164,43 @@ responsável" e "Designer responsável").
 
 ---
 
-## 8. Próximo passo pendente ⚠️
+## 8. Tela Financeiro (`/admin/financeiro`) — regras de cálculo
 
-**Tarefa em andamento (interrompida pelo usuário antes de eu buscar o design):**
+Implementada em `app/api/admin/financeiro/route.ts` (admin-only, `/admin/*` já é gated pelo proxy).
+As fórmulas foram **reverso-engenheiradas a partir dos números exatos do mockup** (design tinha dados
+de exemplo que batiam exatamente com essas contas — validado antes de implementar):
 
-> "Adicione essa tela [Financeiro], e crie todas regras para os cálculos ocorrerem de forma certa"
->
-> Design: `https://claude.ai/design/p/8bd56c3c-4e49-4d84-b5fc-c002f31b170e?file=ROI+Tracker+-+Financeiro.dc.html`
+- **LT (lifetime) de um cliente** = meses inteiros entre `contractDate` e hoje (mínimo 0)
+- **Receita acumulada (cliente)** = `ticket × LT`
+- **LTV Projetado (cliente)** = `ticket × (LT + PROJECTION_MONTHS)`, com `PROJECTION_MONTHS = 6`
+  (assume que o cliente permanece pagando o ticket atual por mais 6 meses a partir de hoje)
+- **MRR da carteira** = soma do `ticket` dos clientes **ativos** com ticket+contractDate preenchidos
+- **Ticket médio / LT médio (carteira)** = média simples entre os clientes ativos
+- **LTV médio (carteira)** = `Ticket médio × LT médio` (não é a média dos LTVs individuais)
+- **Receita acumulada (carteira)** = soma da receita acumulada de **todos** os clientes com
+  ticket+contractDate, ativos ou não — dinheiro já faturado não some quando o cliente cancela
+- **NPS por cliente** = mesmo cálculo usado no resto do app (`(promotores − detratores) / total × 100`,
+  baseado em `trafegoScore` de todas as respostas do cliente, sem filtro de mês)
+- **NPS médio da carteira** = média do NPS de cada cliente ativo (não é o NPS agregado de todas as
+  notas juntas) — só entram clientes com pelo menos 1 resposta
+- **Zonas de NPS** (metodologia Bain adaptada): `≥70` Zona de excelência, `50–69` Zona de qualidade,
+  `0–49` Zona de aperfeiçoamento, `<0` Zona crítica
+- **Evolução do MRR (6 meses)** = para cada mês, soma o ticket dos clientes **atualmente ativos**
+  cujo `contractDate` já existia até o fim daquele mês
 
-**O que falta fazer ao retomar:**
-1. Buscar o arquivo via `DesignSync.get_file` (projectId `8bd56c3c-4e49-4d84-b5fc-c002f31b170e`,
-   path `ROI Tracker - Financeiro.dc.html`) pra ver o layout/métricas exatas pedidas
-2. **Perguntar ao usuário** (ainda não foi definido) quais regras de cálculo financeiro ele quer —
-   possíveis candidatos com base no que já existe no schema (`Client.ticket`, `Collaborator.salary`,
-   `Collaborator.variable`):
-   - Receita total (soma de `ticket` dos clientes ativos, por marca?)
-   - Custo com equipe (soma de `salary + variable` dos colaboradores ativos)
-   - Margem/lucro (receita - custo)
-   - Ticket médio por marca (já existe no Dashboard atual, seção "Por Marca")
-   - CAC, LTV, ou outras métricas — perguntar, não assumir
-3. Decidir se "Financeiro" é uma nova rota (`/admin/financeiro`) com item novo na Sidebar, e se tem
-   restrição de acesso (provavelmente admin-only, dado que salário é dado sensível já tratado como
-   admin-only no resto do sistema)
-4. Implementar seguindo o design system da seção 3 (tema ROI roxo, cards `bg-white/[0.03] border
-   border-white/[0.08] rounded-[14px]`, mesma tipografia/paleta das outras telas)
-5. Seguir o fluxo de validação + deploy da seção 2 e 6
+### Limitações conhecidas (documentar se o usuário perguntar por que os números "não batem")
+- O schema não tem uma data de cancelamento/churn — só `active: boolean`. Isso significa:
+  - Receita acumulada de um cliente inativo usa LT = tempo até **hoje**, não até quando ele saiu
+    (pode superestimar levemente clientes cancelados há muito tempo)
+  - "Evolução do MRR" só reflete clientes ativos hoje — não reconstrói o MRR histórico real incluindo
+    quem já cancelou
+  - Se o usuário quiser precisão histórica real, sugerir adicionar um campo `churnDate` ao `Client`
+- Só entram nos cálculos financeiros clientes com **ticket E contractDate** preenchidos — os que
+  faltam algum desses dois campos ficam de fora silenciosamente (não gera erro, só não soma)
 
-**Não presumir os números/fórmulas — a mensagem do usuário só disse "crie todas as regras para os
-cálculos ocorrerem de forma certa" sem especificar quais cálculos. Perguntar antes de implementar
-lógica financeira errada, já que envolve dados sensíveis (salário, ticket).**
+### Arquivos
+- `app/api/admin/financeiro/route.ts` — cálculos (admin-only)
+- `app/admin/financeiro/page.tsx` — UI (4 cards principais, 2 cards LT/LTV, tabela "Receita por
+  cliente", gráfico de barras "Evolução do MRR")
+- `components/admin/Sidebar.tsx` — item "Financeiro" com badge "ADMIN" (só decorativo, já que
+  `/admin/*` é 100% admin-only via proxy — operador nunca chega lá)

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Users, UserCheck, LogOut, ChevronRight } from "lucide-react";
+import { LayoutGrid, Users, UserCheck, DollarSign, LogOut, ChevronRight } from "lucide-react";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutGrid },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/tripulacao", label: "Operadores", icon: UserCheck },
+  { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign, adminBadge: true },
 ];
 
 export function Sidebar() {
@@ -32,7 +33,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex flex-col gap-1.5">
-          {navItems.map(({ href, label, icon: Icon }) => {
+          {navItems.map(({ href, label, icon: Icon, adminBadge }) => {
             const active = pathname === href || pathname.startsWith(href + "/");
             return (
               <Link
@@ -48,6 +49,11 @@ export function Sidebar() {
                 <div className="flex items-center gap-3">
                   <Icon size={18} className={active ? "text-[#A970FF]" : "text-[#9BA0B4] group-hover:text-white"} />
                   <span>{label}</span>
+                  {adminBadge && (
+                    <span className="text-[10.5px] font-bold tracking-[0.04em] text-[#8B6BFF] bg-[#7C1EFB]/[0.22] rounded-[5px] px-1.5 py-0.5">
+                      ADMIN
+                    </span>
+                  )}
                 </div>
                 {active && <ChevronRight size={14} className="text-[#A970FF]" strokeWidth={2.5} />}
               </Link>
