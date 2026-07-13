@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { NpsLabel } from "@/components/nps/NpsLabel";
 import { RatingScale } from "@/components/nps/RatingScale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -47,22 +46,7 @@ function monthLabel(month: string) {
   return `${months[parseInt(m) - 1]} ${year}`;
 }
 
-// --- Tema NitroADS (azul / F1) — badge de nota local, sem depender do NpsLabel roxo ---
-function nitroBadge(score: number) {
-  if (score <= 6) return { label: "Detrator", emoji: "🔴", cls: "text-red-400 bg-red-900/30 border-red-800" };
-  if (score <= 8) return { label: "Neutro", emoji: "🟡", cls: "text-yellow-400 bg-yellow-900/30 border-yellow-800" };
-  return { label: "Promotor", emoji: "🟢", cls: "text-green-400 bg-green-900/30 border-green-800" };
-}
-
-function NitroNpsLabel({ score }: { score: number }) {
-  const { label, emoji, cls } = nitroBadge(score);
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold", cls)}>
-      {emoji} {label}
-    </span>
-  );
-}
-
+// --- Tema NitroADS (azul / F1) ---
 function NitroRatingScale({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -98,7 +82,7 @@ export default function NpsFormPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const { handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
+  const { handleSubmit, setValue, setError, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   });
 
@@ -137,6 +121,12 @@ export default function NpsFormPage() {
 
   async function onSubmit(data: FormData) {
     if (!client) return;
+
+    if (client.hasDesigner && (data.designerScore === undefined || data.designerScore === null)) {
+      setError("designerScore", { type: "required", message: "Selecione uma nota" });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/nps", {
@@ -277,12 +267,6 @@ export default function NpsFormPage() {
               onChange={(v) => setValue("trafegoScore", v, { shouldValidate: true })}
             />
 
-            {trafegoScore !== undefined && (
-              <div className="mt-3">
-                <NitroNpsLabel score={trafegoScore} />
-              </div>
-            )}
-
             {errors.trafegoScore && (
               <p className="text-red-400 text-xs mt-2 font-manrope">{errors.trafegoScore.message}</p>
             )}
@@ -322,10 +306,8 @@ export default function NpsFormPage() {
                 onChange={(v) => setValue("designerScore", v, { shouldValidate: true })}
               />
 
-              {designerScore !== undefined && (
-                <div className="mt-3">
-                  <NitroNpsLabel score={designerScore} />
-                </div>
+              {errors.designerScore && (
+                <p className="text-red-400 text-xs mt-2 font-manrope">{errors.designerScore.message}</p>
               )}
 
               {designers.length > 0 && (
@@ -427,12 +409,6 @@ export default function NpsFormPage() {
             onChange={(v) => setValue("trafegoScore", v, { shouldValidate: true })}
           />
 
-          {trafegoScore !== undefined && (
-            <div className="mt-3">
-              <NpsLabel score={trafegoScore} />
-            </div>
-          )}
-
           {errors.trafegoScore && (
             <p className="text-red-400 text-xs mt-2">{errors.trafegoScore.message}</p>
           )}
@@ -472,10 +448,8 @@ export default function NpsFormPage() {
               onChange={(v) => setValue("designerScore", v, { shouldValidate: true })}
             />
 
-            {designerScore !== undefined && (
-              <div className="mt-3">
-                <NpsLabel score={designerScore} />
-              </div>
+            {errors.designerScore && (
+              <p className="text-red-400 text-xs mt-2">{errors.designerScore.message}</p>
             )}
 
             {designers.length > 0 && (
