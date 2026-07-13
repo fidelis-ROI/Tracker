@@ -14,6 +14,13 @@ async function main() {
     create: { email: "admin@nitroads.com.br", password: adminHash, role: "admin" },
   });
 
+  // Admin com acesso via Google Workspace (sem senha — login só por SSO)
+  await prisma.adminUser.upsert({
+    where: { email: "fidelis@roipartners.com.br" },
+    update: { role: "admin" },
+    create: { email: "fidelis@roipartners.com.br", password: null, role: "admin" },
+  });
+
   // Operadores (colaboradores)
   const gestor = await prisma.collaborator.upsert({
     where: { id: "collab-gestor-1" },
@@ -132,6 +139,7 @@ async function main() {
 
   console.log("✅ Seed V2 concluído!");
   console.log("📧 Admin:    admin@nitroads.com.br / nitroads2025");
+  console.log("🔑 Admin (Google): fidelis@roipartners.com.br");
   console.log("👤 Operador: lucas@nitroads.com.br / lucas2025");
   console.log("🏎️  Clientes de teste: /r/autoforce-sp e /r/moto-parts");
 }

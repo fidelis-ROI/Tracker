@@ -1,7 +1,10 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+
+const ALLOWED_GOOGLE_DOMAIN = "roipartners.com.br";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -21,7 +24,7 @@ export const authOptions: NextAuthOptions = {
           select: { id: true, email: true, password: true, role: true, collaboratorId: true },
         });
 
-        if (!user) return null;
+        if (!user || !user.password) return null;
 
         const valid = await bcrypt.compare(credentials.password, user.password);
         if (!valid) return null;
@@ -34,9 +37,43 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google") return true;
+
+      const email = profile?.email;
+      if (!email || !email.toLowerCase().endsWith(`@${ALLOWED_GOOGLE_DOMAIN}`)) {
+        return "/admin/login?error=domain";
+      }
+
+      // Mesmo com o domínio certo, a pessoa precisa já estar cadastrada
+      // como AdminUser — login com Google não cria acesso novo sozinho.
+      const existing = await prisma.adminUser.findUnique({ where: { email } });
+      if (!existing) {
+        return "/admin/login?error=not_registered";
+      }
+
+      return true;
+    },
+    async jwt({ token, user, account }) {
+      if (account?.provider === "google" && token.email) {
+        const adminUser = await prisma.adminUser.findUnique({
+          where: { email: token.email },
+          select: { id: true, role: true, collaboratorId: true },
+        });
+        if (adminUser) {
+          token.id = adminUser.id;
+          token.role = adminUser.role;
+          token.collaboratorId = adminUser.collaboratorId;
+        }
+        return token;
+      }
+
       if (user) {
         token.id = user.id;
         token.role = user.role ?? "admin";

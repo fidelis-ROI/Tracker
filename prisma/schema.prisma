@@ -68,7 +68,7 @@ model NpsResponse {
 model AdminUser {
   id             String        @id @default(cuid())
   email          String        @unique
-  password       String
+  password       String?       // null = login apenas via Google (SSO)
   role           String        @default("admin") // "admin" | "operator"
   collaboratorId String?       @unique
   collaborator   Collaborator? @relation(fields: [collaboratorId], references: [id])

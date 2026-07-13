@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,13 +15,27 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const ERROR_MESSAGES: Record<string, string> = {
+  domain: "Use um e-mail @roipartners.com.br para entrar com Google.",
+  not_registered: "Seu e-mail ainda não tem acesso cadastrado. Fale com um admin.",
+};
+
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      toast.error(ERROR_MESSAGES[error] ?? "Não foi possível entrar. Tente novamente.");
+    }
+  }, [searchParams]);
 
   async function onSubmit(data: FormData) {
     setLoading(true);
@@ -51,6 +65,11 @@ export default function LoginPage() {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    await signIn("google", { callbackUrl: "/admin/dashboard" });
+  }
+
   return (
     <div className="min-h-screen bg-[#05070d] flex items-center justify-center p-6 font-sans">
       <div className="w-full max-w-[420px] flex flex-col items-center animate-[roi-fade-up_0.5s_ease-out]">
@@ -64,7 +83,28 @@ export default function LoginPage() {
         <h1 className="text-[30px] font-extrabold text-[#F5F7FF] tracking-[-0.02em] text-center">ROI Tracker</h1>
         <p className="text-[15px] text-[#7C86A8] mt-1.5 text-center">Central de Performance</p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full mt-10">
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className="w-full mt-9 bg-white hover:bg-[#F2F2F2] disabled:opacity-60 border-none rounded-xl px-[18px] py-[14px] text-[15px] font-bold text-[#12141c] flex items-center justify-center gap-2.5 transition-all"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.82Z" />
+            <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.91l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.26v3.1A12 12 0 0 0 12 24Z" />
+            <path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.89 12c0-.79.14-1.56.38-2.28v-3.1H1.26A12 12 0 0 0 0 12c0 1.94.46 3.77 1.26 5.38l4.01-3.1Z" />
+            <path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.58 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.26 6.62l4.01 3.1C6.22 6.88 8.87 4.77 12 4.77Z" />
+          </svg>
+          {googleLoading ? "Conectando..." : "Entrar com Google Workspace"}
+        </button>
+
+        <div className="w-full flex items-center gap-3 mt-6">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-[12px] text-[#525C7A]">ou</span>
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full mt-6">
           <div>
             <label className="text-[11px] font-bold tracking-[0.08em] text-[#6B7494] block mb-2">E-MAIL DE ACESSO</label>
             <input
