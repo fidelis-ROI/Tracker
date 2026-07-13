@@ -8,7 +8,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { RatingScale } from "@/components/nps/RatingScale";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,17 +19,9 @@ interface Client {
   brand: "roi" | "nitroads";
 }
 
-interface Collaborator {
-  id: string;
-  name: string;
-  role: string;
-}
-
 const formSchema = z.object({
   trafegoScore: z.number().min(0).max(10),
-  trafegoCollab: z.string().optional(),
   designerScore: z.number().min(0).max(10).optional(),
-  designerCollab: z.string().optional(),
   feedback: z.string().max(2000).optional(),
 });
 
@@ -74,8 +65,6 @@ export default function NpsFormPage() {
   const { slug } = useParams<{ slug: string }>();
 
   const [client, setClient] = useState<Client | null>(null);
-  const [gestores, setGestores] = useState<Collaborator[]>([]);
-  const [designers, setDesigners] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
@@ -103,13 +92,6 @@ export default function NpsFormPage() {
           const check = await checkRes.json();
           if (check.submitted) { setAlreadySubmitted(true); }
         }
-
-        const [g, d] = await Promise.all([
-          fetch("/api/public/collaborators?role=gestor_trafego").then(r => r.json()),
-          fetch("/api/public/collaborators?role=designer").then(r => r.json()),
-        ]);
-        setGestores(g);
-        setDesigners(d);
       } catch {
         setNotFound(true);
       } finally {
@@ -122,7 +104,7 @@ export default function NpsFormPage() {
   async function onSubmit(data: FormData) {
     if (!client) return;
 
-    if (client.hasDesigner && (data.designerScore === undefined || data.designerScore === null)) {
+    if (client.brand === "nitroads" && client.hasDesigner && (data.designerScore === undefined || data.designerScore === null)) {
       setError("designerScore", { type: "required", message: "Selecione uma nota" });
       return;
     }
@@ -270,26 +252,6 @@ export default function NpsFormPage() {
             {errors.trafegoScore && (
               <p className="text-red-400 text-xs mt-2 font-manrope">{errors.trafegoScore.message}</p>
             )}
-
-            {gestores.length > 0 && (
-              <div className="mt-4">
-                <label className="text-xs text-[#8892A4] font-manrope mb-1.5 block">
-                  Qual gestor avaliou? (opcional)
-                </label>
-                <Select onValueChange={(v) => setValue("trafegoCollab", v as string | undefined)}>
-                  <SelectTrigger className="bg-[#00020A] border-[#1A2140] text-white">
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#0A0F1E] border-[#1A2140]">
-                    {gestores.map((g) => (
-                      <SelectItem key={g.id} value={g.id} className="text-white hover:bg-[#1A2140]">
-                        {g.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
 
           {client?.hasDesigner && (
@@ -308,26 +270,6 @@ export default function NpsFormPage() {
 
               {errors.designerScore && (
                 <p className="text-red-400 text-xs mt-2 font-manrope">{errors.designerScore.message}</p>
-              )}
-
-              {designers.length > 0 && (
-                <div className="mt-4">
-                  <label className="text-xs text-[#8892A4] font-manrope mb-1.5 block">
-                    Qual designer avaliou? (opcional)
-                  </label>
-                  <Select onValueChange={(v) => setValue("designerCollab", v as string | undefined)}>
-                    <SelectTrigger className="bg-[#00020A] border-[#1A2140] text-white">
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0A0F1E] border-[#1A2140]">
-                      {designers.map((d) => (
-                        <SelectItem key={d.id} value={d.id} className="text-white hover:bg-[#1A2140]">
-                          {d.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               )}
             </div>
           )}
@@ -373,7 +315,7 @@ export default function NpsFormPage() {
     );
   }
 
-  // --- Tema ROI Tracker (roxo) ---
+  // --- Tema ROI Tracker (roxo) — apenas 1 NPS + campo aberto ---
   return (
     <div className="min-h-screen bg-[#0B0E17] py-14 px-4">
       <header className="text-center mb-10 max-w-xl mx-auto">
@@ -398,10 +340,10 @@ export default function NpsFormPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl mx-auto space-y-5">
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-6">
           <h2 className="text-base font-bold text-white mb-1">
-            Operação de Tráfego
+            Sua avaliação
           </h2>
           <p className="text-sm text-[#8A8FA3] mb-4">
-            Como foi a performance do seu Gestor de Tráfego este mês?
+            De 0 a 10, como você avalia o nosso trabalho este mês?
           </p>
 
           <RatingScale
@@ -412,67 +354,7 @@ export default function NpsFormPage() {
           {errors.trafegoScore && (
             <p className="text-red-400 text-xs mt-2">{errors.trafegoScore.message}</p>
           )}
-
-          {gestores.length > 0 && (
-            <div className="mt-4">
-              <label className="text-xs text-[#8A8FA3] mb-1.5 block">
-                Qual gestor avaliou? (opcional)
-              </label>
-              <Select onValueChange={(v) => setValue("trafegoCollab", v as string | undefined)}>
-                <SelectTrigger className="bg-[#0B0E17] border-white/10 text-white">
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent className="bg-[#12141F] border-white/10">
-                  {gestores.map((g) => (
-                    <SelectItem key={g.id} value={g.id} className="text-white hover:bg-white/[0.06]">
-                      {g.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
-
-        {client?.hasDesigner && (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-6">
-            <h2 className="text-base font-bold text-white mb-1">
-              Criativos
-            </h2>
-            <p className="text-sm text-[#8A8FA3] mb-4">
-              E os criativos entregues este mês?
-            </p>
-
-            <RatingScale
-              value={designerScore ?? null}
-              onChange={(v) => setValue("designerScore", v, { shouldValidate: true })}
-            />
-
-            {errors.designerScore && (
-              <p className="text-red-400 text-xs mt-2">{errors.designerScore.message}</p>
-            )}
-
-            {designers.length > 0 && (
-              <div className="mt-4">
-                <label className="text-xs text-[#8A8FA3] mb-1.5 block">
-                  Qual designer avaliou? (opcional)
-                </label>
-                <Select onValueChange={(v) => setValue("designerCollab", v as string | undefined)}>
-                  <SelectTrigger className="bg-[#0B0E17] border-white/10 text-white">
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#12141F] border-white/10">
-                    {designers.map((d) => (
-                      <SelectItem key={d.id} value={d.id} className="text-white hover:bg-white/[0.06]">
-                        {d.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        )}
 
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-6">
           <h2 className="text-base font-bold text-white mb-1">

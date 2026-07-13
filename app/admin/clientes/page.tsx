@@ -27,6 +27,8 @@ interface Client {
 
 interface Collaborator { id: string; name: string; role: string; }
 
+const ROI_SERVICE_OPTIONS = ["Tráfego", "Estratégia", "CRM", "RevOps", "Consultoria"];
+
 const schema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
   slug: z.string().min(1, "Slug obrigatório").regex(/^[a-z0-9-]+$/, "Apenas letras minúsculas, números e hífens"),
@@ -62,12 +64,14 @@ export default function ClientesPage() {
 
   const [clients, setClients] = useState<Client[]>([]);
   const [operators, setOperators] = useState<Collaborator[]>([]);
+  const [designers, setDesigners] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
   const [saving, setSaving] = useState(false);
   const [createdClient, setCreatedClient] = useState<Client | null>(null);
   const [selectedOps, setSelectedOps] = useState<string[]>([]);
+  const [selectedRoiServices, setSelectedRoiServices] = useState<string[]>([]);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -82,12 +86,14 @@ export default function ClientesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [clientRes, opRes] = await Promise.all([
+      const [clientRes, opRes, designerRes] = await Promise.all([
         fetch("/api/admin/clients"),
         fetch("/api/admin/collaborators?role=gestor_trafego"),
+        fetch("/api/admin/collaborators?role=designer"),
       ]);
       setClients(await clientRes.json());
       setOperators(await opRes.json());
+      setDesigners(await designerRes.json());
     } finally {
       setLoading(false);
     }
@@ -105,6 +111,7 @@ export default function ClientesPage() {
     setEditing(null);
     setCreatedClient(null);
     setSelectedOps([]);
+    setSelectedRoiServices([]);
     reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "", services: "" });
     setOpen(true);
   }
@@ -114,6 +121,7 @@ export default function ClientesPage() {
     setCreatedClient(null);
     setSelectedOps(client.operators?.map(o => o.id) ?? []);
     const services = parseServices(client.services);
+    setSelectedRoiServices(client.brand === "roi" ? services.filter(s => ROI_SERVICE_OPTIONS.includes(s)) : []);
     reset({
       name: client.name,
       slug: client.slug,
@@ -122,13 +130,17 @@ export default function ClientesPage() {
       brand: client.brand,
       ticket: client.ticket?.toString() ?? "",
       contractDate: client.contractDate ? client.contractDate.slice(0, 10) : "",
-      services: services.join(", "),
+      services: client.brand === "nitroads" ? services.join(", ") : "",
     });
     setOpen(true);
   }
 
   function toggleOp(id: string) {
     setSelectedOps(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }
+
+  function toggleRoiService(service: string) {
+    setSelectedRoiServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
   }
 
   async function onSubmit(data: FormData) {
@@ -146,9 +158,9 @@ export default function ClientesPage() {
       if (isAdmin) {
         payload.ticket = data.ticket ? parseFloat(data.ticket) : null;
         payload.contractDate = data.contractDate || null;
-        payload.services = data.services
-          ? data.services.split(",").map(s => s.trim()).filter(Boolean)
-          : null;
+        payload.services = data.brand === "roi"
+          ? (selectedRoiServices.length ? selectedRoiServices : null)
+          : (data.services ? data.services.split(",").map(s => s.trim()).filter(Boolean) : null);
       }
 
       const url = editing ? `/api/admin/clients/${editing.id}` : "/api/admin/clients";
@@ -362,7 +374,7 @@ export default function ClientesPage() {
               {/* Operadores */}
               {operators.length > 0 && (
                 <div>
-                  <label className="text-xs text-[#8A8FA3] block mb-2">Operadores responsáveis</label>
+                  <label className="text-xs text-[#8A8FA3] block mb-2">Gestor de tráfego responsável</label>
                   <div className="flex flex-wrap gap-2">
                     {operators.map(op => (
                       <button
@@ -376,6 +388,28 @@ export default function ClientesPage() {
                     ))}
                   </div>
                 </div>
+              )}
+
+              {/* Designer */}
+              {hasDesignerValue && designers.length > 0 && (
+                <div>
+                  <label className="text-xs text-[#8A8FA3] block mb-2">Designer responsável</label>
+                  <div className="flex flex-wrap gap-2">
+                    {designers.map(d => (
+                      <button
+                        type="button"
+                        key={d.id}
+                        onClick={() => toggleOp(d.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedOps.includes(d.id) ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#5B21F0]/50"}`}
+                      >
+                        {d.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(operators.length > 0 || (hasDesignerValue && designers.length > 0)) && (
+                <p className="text-xs text-[#8A8FA3]/70 -mt-2">Define quem é atribuído às avaliações — o cliente não escolhe isso na hora de votar.</p>
               )}
 
               {/* Admin-only fields */}
@@ -407,14 +441,32 @@ export default function ClientesPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-xs text-[#8A8FA3] block mb-1">Serviços contratados <span className="opacity-60">(separados por vírgula)</span></label>
-                    <input
-                      {...register("services")}
-                      placeholder="Tráfego pago, Social media, E-mail marketing"
-                      className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
-                    />
-                  </div>
+                  {brandValue === "roi" ? (
+                    <div>
+                      <label className="text-xs text-[#8A8FA3] block mb-2">Serviços contratados</label>
+                      <div className="flex flex-wrap gap-2">
+                        {ROI_SERVICE_OPTIONS.map(service => (
+                          <button
+                            type="button"
+                            key={service}
+                            onClick={() => toggleRoiService(service)}
+                            className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedRoiServices.includes(service) ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#5B21F0]/50"}`}
+                          >
+                            {service}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="text-xs text-[#8A8FA3] block mb-1">Serviços contratados <span className="opacity-60">(separados por vírgula)</span></label>
+                      <input
+                        {...register("services")}
+                        placeholder="Tráfego pago, Social media, E-mail marketing"
+                        className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
