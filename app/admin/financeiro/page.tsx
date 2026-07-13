@@ -158,7 +158,7 @@ export default function FinanceiroPage() {
           {/* Evolução do MRR */}
           <h2 className="text-[19px] font-extrabold text-white mb-4">Evolução do MRR</h2>
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-7">
-            <div className="flex items-end gap-6 h-40">
+            <div className="flex gap-6 h-40">
               {data.mrrHistory.map((m, i) => {
                 const isLast = i === data.mrrHistory.length - 1;
                 const heightPct = maxMrr > 0 ? Math.max((m.value / maxMrr) * 100, 4) : 4;
