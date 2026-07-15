@@ -27,7 +27,7 @@ interface Client {
 
 interface Collaborator { id: string; name: string; role: string; }
 
-const ROI_SERVICE_OPTIONS = ["Tráfego", "Estratégia", "CRM", "RevOps", "Consultoria"];
+const SERVICE_OPTIONS = ["Tráfego", "Estratégia", "Criativos", "Design", "CRM", "RevOps", "Consultoria", "Social Media", "E-mail Marketing"];
 
 const schema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
@@ -37,7 +37,6 @@ const schema = z.object({
   brand: z.enum(["roi", "nitroads"]),
   ticket: z.string().optional(),
   contractDate: z.string().optional(),
-  services: z.string().optional(),
   operatorIds: z.array(z.string()).optional(),
 });
 
@@ -71,7 +70,8 @@ export default function ClientesPage() {
   const [saving, setSaving] = useState(false);
   const [createdClient, setCreatedClient] = useState<Client | null>(null);
   const [selectedOps, setSelectedOps] = useState<string[]>([]);
-  const [selectedRoiServices, setSelectedRoiServices] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [customService, setCustomService] = useState("");
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -111,8 +111,9 @@ export default function ClientesPage() {
     setEditing(null);
     setCreatedClient(null);
     setSelectedOps([]);
-    setSelectedRoiServices([]);
-    reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "", services: "" });
+    setSelectedServices([]);
+    setCustomService("");
+    reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "" });
     setOpen(true);
   }
 
@@ -120,8 +121,8 @@ export default function ClientesPage() {
     setEditing(client);
     setCreatedClient(null);
     setSelectedOps(client.operators?.map(o => o.id) ?? []);
-    const services = parseServices(client.services);
-    setSelectedRoiServices(client.brand === "roi" ? services.filter(s => ROI_SERVICE_OPTIONS.includes(s)) : []);
+    setSelectedServices(parseServices(client.services));
+    setCustomService("");
     reset({
       name: client.name,
       slug: client.slug,
@@ -130,7 +131,6 @@ export default function ClientesPage() {
       brand: client.brand,
       ticket: client.ticket?.toString() ?? "",
       contractDate: client.contractDate ? client.contractDate.slice(0, 10) : "",
-      services: client.brand === "nitroads" ? services.join(", ") : "",
     });
     setOpen(true);
   }
@@ -139,8 +139,15 @@ export default function ClientesPage() {
     setSelectedOps(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }
 
-  function toggleRoiService(service: string) {
-    setSelectedRoiServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
+  function toggleService(service: string) {
+    setSelectedServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
+  }
+
+  function addCustomService() {
+    const value = customService.trim();
+    if (!value || selectedServices.includes(value)) return;
+    setSelectedServices(prev => [...prev, value]);
+    setCustomService("");
   }
 
   async function onSubmit(data: FormData) {
@@ -158,9 +165,7 @@ export default function ClientesPage() {
       if (isAdmin) {
         payload.ticket = data.ticket ? parseFloat(data.ticket) : null;
         payload.contractDate = data.contractDate || null;
-        payload.services = data.brand === "roi"
-          ? (selectedRoiServices.length ? selectedRoiServices : null)
-          : (data.services ? data.services.split(",").map(s => s.trim()).filter(Boolean) : null);
+        payload.services = selectedServices.length ? selectedServices : null;
       }
 
       const url = editing ? `/api/admin/clients/${editing.id}` : "/api/admin/clients";
@@ -458,32 +463,37 @@ export default function ClientesPage() {
                     </div>
                   </div>
 
-                  {brandValue === "roi" ? (
-                    <div>
-                      <label className="text-xs text-[#8A8FA3] block mb-2">Serviços contratados</label>
-                      <div className="flex flex-wrap gap-2">
-                        {ROI_SERVICE_OPTIONS.map(service => (
-                          <button
-                            type="button"
-                            key={service}
-                            onClick={() => toggleRoiService(service)}
-                            className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedRoiServices.includes(service) ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#5B21F0]/50"}`}
-                          >
-                            {service}
-                          </button>
-                        ))}
-                      </div>
+                  <div>
+                    <label className="text-xs text-[#8A8FA3] block mb-2">Serviços contratados</label>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {[...new Set([...SERVICE_OPTIONS, ...selectedServices])].map(service => (
+                        <button
+                          type="button"
+                          key={service}
+                          onClick={() => toggleService(service)}
+                          className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedServices.includes(service) ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-[#0B0E17] border-white/10 text-[#8A8FA3] hover:border-[#5B21F0]/50"}`}
+                        >
+                          {service}
+                        </button>
+                      ))}
                     </div>
-                  ) : (
-                    <div>
-                      <label className="text-xs text-[#8A8FA3] block mb-1">Serviços contratados <span className="opacity-60">(separados por vírgula)</span></label>
+                    <div className="flex items-center gap-2">
                       <input
-                        {...register("services")}
-                        placeholder="Tráfego pago, Social media, E-mail marketing"
-                        className="w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                        value={customService}
+                        onChange={(e) => setCustomService(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomService(); } }}
+                        placeholder="Outro serviço..."
+                        className="flex-1 bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                       />
+                      <button
+                        type="button"
+                        onClick={addCustomService}
+                        className="bg-white/[0.06] hover:bg-white/10 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-all"
+                      >
+                        Adicionar
+                      </button>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 

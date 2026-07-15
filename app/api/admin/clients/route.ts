@@ -10,9 +10,9 @@ const createSchema = z.object({
   hasDesigner: z.boolean().default(true),
   active: z.boolean().default(true),
   brand: z.enum(["roi", "nitroads"]).default("roi"),
-  ticket: z.number().optional(),
-  contractDate: z.string().optional(),
-  services: z.array(z.string()).optional(),
+  ticket: z.number().nullable().optional(),
+  contractDate: z.string().nullable().optional(),
+  services: z.array(z.string()).nullable().optional(),
   operatorIds: z.array(z.string()).optional(),
 });
 

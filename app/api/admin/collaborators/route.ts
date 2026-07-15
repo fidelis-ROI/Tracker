@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     if (data.createLogin && data.loginEmail && data.loginPassword) {
       const hash = await bcrypt.hash(data.loginPassword, 12);
       await prisma.adminUser.create({
-        data: { email: data.loginEmail, password: hash, role: "operator", collaboratorId: collab.id },
+        data: { email: data.loginEmail.toLowerCase().trim(), password: hash, role: "operator", collaboratorId: collab.id },
       });
     }
 

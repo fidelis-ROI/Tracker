@@ -77,13 +77,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       const existingUser = await prisma.adminUser.findUnique({ where: { collaboratorId: id } });
       if (existingUser) {
         const updateData: Record<string, unknown> = {};
-        if (loginEmail) updateData.email = loginEmail;
+        if (loginEmail) updateData.email = loginEmail.toLowerCase().trim();
         if (loginPassword) updateData.password = await bcrypt.hash(loginPassword, 12);
         await prisma.adminUser.update({ where: { collaboratorId: id }, data: updateData });
       } else if (loginEmail && loginPassword) {
         const hash = await bcrypt.hash(loginPassword, 12);
         await prisma.adminUser.create({
-          data: { email: loginEmail, password: hash, role: "operator", collaboratorId: id },
+          data: { email: loginEmail.toLowerCase().trim(), password: hash, role: "operator", collaboratorId: id },
         });
       }
     }

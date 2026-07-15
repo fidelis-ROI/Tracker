@@ -20,7 +20,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.adminUser.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email.toLowerCase().trim() },
           select: { id: true, email: true, password: true, role: true, collaboratorId: true },
         });
 
@@ -46,8 +46,8 @@ export const authOptions: NextAuthOptions = {
     async signIn({ account, profile }) {
       if (account?.provider !== "google") return true;
 
-      const email = profile?.email;
-      if (!email || !email.toLowerCase().endsWith(`@${ALLOWED_GOOGLE_DOMAIN}`)) {
+      const email = profile?.email?.toLowerCase().trim();
+      if (!email || !email.endsWith(`@${ALLOWED_GOOGLE_DOMAIN}`)) {
         return "/admin/login?error=domain";
       }
 
@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (account?.provider === "google" && token.email) {
         const adminUser = await prisma.adminUser.findUnique({
-          where: { email: token.email },
+          where: { email: token.email.toLowerCase().trim() },
           select: { id: true, role: true, collaboratorId: true },
         });
         if (adminUser) {
