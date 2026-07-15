@@ -107,3 +107,20 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "admin") {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  // Soft delete: preserva o histórico de avaliações recebidas, apenas remove
+  // o operador das listagens, do login e da carteira de clientes.
+  await prisma.$transaction([
+    prisma.clientOperator.deleteMany({ where: { collaboratorId: id } }),
+    prisma.adminUser.deleteMany({ where: { collaboratorId: id } }),
+    prisma.collaborator.update({ where: { id }, data: { deletedAt: new Date(), active: false } }),
+  ]);
+  return NextResponse.json({ success: true });
+}

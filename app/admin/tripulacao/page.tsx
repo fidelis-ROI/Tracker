@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NpsLabel } from "@/components/nps/NpsLabel";
-import { Plus, Pencil, Lock, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Lock, KeyRound, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
 interface Collaborator {
   id: string;
@@ -188,6 +188,18 @@ export default function OperadoresPage() {
     }
   }
 
+  async function handleDelete(c: Collaborator) {
+    if (!window.confirm(`Excluir o operador "${c.name}"? Ele deixará de aparecer nas listagens e perderá o acesso ao portal (o histórico de avaliações recebidas é mantido).`)) return;
+    try {
+      const res = await fetch(`/api/admin/collaborators/${c.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast.success("Operador excluído.");
+      load();
+    } catch {
+      toast.error("Erro ao excluir. Tente novamente.");
+    }
+  }
+
   const gestores = collabs.filter((c) => c.role === "gestor_trafego");
   const designers = collabs.filter((c) => c.role === "designer");
 
@@ -227,6 +239,11 @@ export default function OperadoresPage() {
                     <button onClick={() => openEdit(c)} className="text-[#8A8FA3] hover:text-white transition-all" title="Editar">
                       <Pencil size={16} />
                     </button>
+                    {isAdmin && (
+                      <button onClick={() => handleDelete(c)} className="text-[#8A8FA3] hover:text-red-400 transition-all" title="Excluir">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                     <button onClick={() => toggleExpand(c.id)} className="text-[#8A8FA3] hover:text-white transition-all" title="Ver detalhes">
                       {c.expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>

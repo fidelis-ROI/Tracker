@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
   const client = await prisma.client.findUnique({
-    where: { slug, active: true },
+    where: { slug, active: true, deletedAt: null },
   });
 
   if (!client) return NextResponse.json({ error: "not_found" }, { status: 404 });

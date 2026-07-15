@@ -37,6 +37,7 @@ export async function GET() {
   const now = new Date();
 
   const clients = await prisma.client.findMany({
+    where: { deletedAt: null },
     select: {
       id: true,
       name: true,

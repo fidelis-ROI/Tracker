@@ -63,6 +63,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id } = await params;
-  await prisma.client.update({ where: { id }, data: { active: false } });
+  // Soft delete: preserva o histórico de avaliações e dados financeiros,
+  // apenas remove o cliente das listagens e desvincula os operadores.
+  await prisma.$transaction([
+    prisma.clientOperator.deleteMany({ where: { clientId: id } }),
+    prisma.client.update({ where: { id }, data: { deletedAt: new Date(), active: false } }),
+  ]);
   return NextResponse.json({ success: true });
 }

@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
   const isAdmin = session.user.role === "admin";
 
   const clients = await prisma.client.findMany({
+    where: { deletedAt: null },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

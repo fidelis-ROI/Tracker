@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Copy, ExternalLink, Pencil, Lock, Search } from "lucide-react";
+import { Plus, Copy, ExternalLink, Pencil, Lock, Search, Trash2 } from "lucide-react";
 
 interface Client {
   id: string;
@@ -191,6 +191,18 @@ export default function ClientesPage() {
     toast.success("Link copiado!");
   }
 
+  async function handleDelete(client: Client) {
+    if (!window.confirm(`Excluir o cliente "${client.name}"? Ele deixará de aparecer nas listagens (o histórico de avaliações e dados financeiros é mantido).`)) return;
+    try {
+      const res = await fetch(`/api/admin/clients/${client.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast.success("Cliente excluído.");
+      load();
+    } catch {
+      toast.error("Erro ao excluir. Tente novamente.");
+    }
+  }
+
   const gridCols = isAdmin
     ? "grid-cols-[1.4fr_1.1fr_0.8fr_0.9fr_1.1fr_0.8fr_0.8fr_1fr]"
     : "grid-cols-[1.4fr_1.1fr_0.9fr_1.1fr_0.8fr_0.8fr_1fr]";
@@ -287,6 +299,11 @@ export default function ClientesPage() {
                     <button onClick={() => openEdit(c)} className="hover:text-white transition-all" title="Editar">
                       <Pencil size={16} />
                     </button>
+                    {isAdmin && (
+                      <button onClick={() => handleDelete(c)} className="hover:text-red-400 transition-all" title="Excluir">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const role = searchParams.get("role");
 
   const collaborators = await prisma.collaborator.findMany({
-    where: role ? { role } : undefined,
+    where: { deletedAt: null, ...(role ? { role } : {}) },
     orderBy: { name: "asc" },
     select: {
       id: true,
