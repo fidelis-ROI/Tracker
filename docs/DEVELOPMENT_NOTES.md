@@ -213,7 +213,11 @@ de exemplo que batiam exatamente com essas contas — validado antes de implemen
 
 ## 9. Boards (`/admin/boards`) — Kanban de tarefas
 
-Kanban estilo ClickUp para gestão interna de tarefas. **Admin-only** (fica sob `/admin/*`, gated pelo proxy).
+Kanban estilo ClickUp para gestão interna de tarefas. **Compartilhado entre admin e operador** — todos veem os mesmos boards/cards (workspace único do time). Um operador pode criar tarefa e atribuir para outro. UI vive em dois lugares que renderizam os **mesmos componentes** (`components/boards/BoardsListView.tsx` e `BoardView.tsx`, parametrizados por `basePath`):
+- `app/admin/boards` + `app/admin/boards/[id]` → `basePath="/admin/boards"` (sidebar admin)
+- `app/operador/boards` + `app/operador/boards/[id]` → `basePath="/operador/boards"` (sidebar operador)
+
+As APIs `/api/admin/*` de boards/cards só exigem **sessão** (qualquer logado) — exceto `DELETE` de board que exige admin. Por isso operadores usam os mesmos endpoints. `getActor()` grava o nome do operador (via `collaboratorId`) em comentários/timeline/createdBy.
 
 ### Colunas (status fixos)
 `backlog` (Backlog) · `todo` (A Fazer) · `doing` (Fazendo) · `review` (Em Revisão) · `blocked` (Bloqueado) · `done` (Concluído). Constantes/labels em `lib/boards.ts` (`BOARD_STATUSES`, `STATUS_LABELS`).
@@ -227,9 +231,11 @@ Kanban estilo ClickUp para gestão interna de tarefas. **Admin-only** (fica sob 
 Assignee/co-assignee referenciam `Collaborator` (as pessoas já cadastradas em Operadores). Admins sem Collaborator não aparecem como responsáveis — `createdBy` é gravado como string da sessão.
 
 ### UI
-- `app/admin/boards/page.tsx` — lista de boards + criar board.
-- `app/admin/boards/[id]/page.tsx` — Kanban. Drag-and-drop **nativo HTML5** (sem lib), drop numa coluna faz PATCH do status (otimista). Quick-add por coluna.
+- `components/boards/BoardsListView.tsx` — lista de boards + criar board (recebe `basePath`).
+- `components/boards/BoardView.tsx` — Kanban. Drag-and-drop **nativo HTML5** (sem lib), drop numa coluna faz PATCH do status (otimista). Quick-add por coluna. Recebe `boardId` + `basePath`.
+- `components/boards/types.ts` — tipos compartilhados (`KanbanCard`, `BoardMeta`, `Collaborator`).
 - `components/boards/CardPanel.tsx` — painel lateral do card (title, descrição, checklist, anexos, subtarefas, relações, comentários, timeline + sidebar com responsável, co-responsável, criado por, status, tag, início, vencimento).
+- As páginas em `app/admin/boards/*` e `app/operador/boards/*` são só wrappers finos que renderizam esses componentes com o `basePath` da área.
 
 ### APIs (`/api/admin/...`)
 `boards` (GET/POST) · `boards/[id]` (GET kanban / PATCH / DELETE soft) · `boards/[id]/tags` (POST) · `cards` (POST, aceita `parentId` p/ subtarefa) · `cards/[id]` (GET full / PATCH / DELETE soft) · `cards/[id]/{checklist,comments,attachments,relations}`. Todas exigem sessão; DELETE de board exige admin.

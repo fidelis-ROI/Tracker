@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
-import type { BoardMeta, Collaborator } from "@/app/admin/boards/[id]/page";
+import type { BoardMeta, Collaborator } from "@/components/boards/types";
 import {
   X, Trash2, Plus, Paperclip, GitBranch, Link2, Send, CheckSquare, Square, Clock, MessageSquare,
 } from "lucide-react";

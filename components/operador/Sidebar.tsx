@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Users, User, LogOut, ChevronRight } from "lucide-react";
+import { LayoutGrid, Users, User, KanbanSquare, LogOut, ChevronRight } from "lucide-react";
 
 const navItems = [
   { href: "/operador/dashboard", label: "Carteira", icon: LayoutGrid },
   { href: "/operador/clientes", label: "Clientes", icon: Users },
+  { href: "/operador/boards", label: "Boards", icon: KanbanSquare },
   { href: "/operador/perfil", label: "Painel Pessoal", icon: User },
 ];
 
