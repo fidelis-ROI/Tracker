@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Users, UserCheck, DollarSign, LogOut, ChevronRight } from "lucide-react";
+import { LayoutGrid, Users, UserCheck, DollarSign, KanbanSquare, LogOut, ChevronRight } from "lucide-react";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutGrid },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/tripulacao", label: "Operadores", icon: UserCheck },
+  { href: "/admin/boards", label: "Boards", icon: KanbanSquare },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign, adminBadge: true },
 ];
 

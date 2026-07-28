@@ -38,6 +38,8 @@ model Collaborator {
   designerResponses NpsResponse[]    @relation("DesignerCollab")
   clientPortfolio   ClientOperator[]
   adminUser         AdminUser?
+  cardsAssigned     BoardCard[]      @relation("CardAssignee")
+  cardsCoAssigned   BoardCard[]      @relation("CardCoAssignee")
 }
 
 // Relação explícita: quais clientes cada operador gerencia
@@ -74,4 +76,129 @@ model AdminUser {
   role           String        @default("admin") // "admin" | "operator"
   collaboratorId String?       @unique
   collaborator   Collaborator? @relation(fields: [collaboratorId], references: [id])
+}
+
+// ============================================================================
+// Boards — Kanban estilo ClickUp para gestão de tarefas internas
+// ============================================================================
+
+model Board {
+  id        String      @id @default(cuid())
+  name      String
+  team      String?     // Ex: "Marketing / Design"
+  color     String      @default("#F59E0B") // cor de destaque do board
+  prefix    String      @default("TASK")    // prefixo do código dos cards (ex: "MAR")
+  cardSeq   Int         @default(0)          // contador para gerar códigos sequenciais
+  createdAt DateTime    @default(now())
+  deletedAt DateTime?
+  cards     BoardCard[]
+  tags      BoardTag[]
+}
+
+model BoardTag {
+  id      String      @id @default(cuid())
+  boardId String
+  board   Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  name    String
+  color   String      @default("#7C1EFB")
+  cards   BoardCard[]
+
+  @@unique([boardId, name])
+}
+
+model BoardCard {
+  id           String   @id @default(cuid())
+  boardId      String
+  board        Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  code         String   // "MAR-127"
+  title        String
+  description  String?
+  // backlog | todo | doing | review | blocked | done
+  status       String   @default("backlog")
+  order        Float    @default(0) // ordenação dentro da coluna
+
+  assigneeId   String?
+  assignee     Collaborator? @relation("CardAssignee", fields: [assigneeId], references: [id])
+  coAssigneeId String?
+  coAssignee   Collaborator? @relation("CardCoAssignee", fields: [coAssigneeId], references: [id])
+  createdByName  String?
+  createdByEmail String?
+
+  tagId    String?
+  tag      BoardTag? @relation(fields: [tagId], references: [id])
+
+  startDate DateTime?
+  dueDate   DateTime?
+
+  parentId String?     // se preenchido, este card é subtarefa de outro
+  parent   BoardCard?  @relation("Subtasks", fields: [parentId], references: [id])
+  subtasks BoardCard[] @relation("Subtasks")
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  checklist     CardChecklistItem[]
+  attachments   CardAttachment[]
+  comments      CardComment[]
+  activities    CardActivity[]
+  relationsFrom CardRelation[]      @relation("RelFrom")
+  relationsTo   CardRelation[]      @relation("RelTo")
+
+  @@index([boardId])
+  @@index([parentId])
+}
+
+model CardChecklistItem {
+  id     String    @id @default(cuid())
+  cardId String
+  card   BoardCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  text   String
+  done   Boolean   @default(false)
+  order  Float     @default(0)
+}
+
+model CardAttachment {
+  id        String    @id @default(cuid())
+  cardId    String
+  card      BoardCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  filename  String
+  mimeType  String
+  size      Int
+  dataUrl   String    // data URL base64 (limitado a ~1.5MB por arquivo)
+  createdAt DateTime  @default(now())
+}
+
+model CardComment {
+  id          String    @id @default(cuid())
+  cardId      String
+  card        BoardCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  authorName  String
+  authorEmail String
+  body        String
+  createdAt   DateTime  @default(now())
+}
+
+// Timeline do card — log de atividades
+model CardActivity {
+  id        String    @id @default(cuid())
+  cardId    String
+  card      BoardCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  actorName String
+  type      String    // created | status | assignee | due | tag | title | comment | attachment | checklist | relation | subtask
+  detail    String?
+  createdAt DateTime  @default(now())
+
+  @@index([cardId])
+}
+
+model CardRelation {
+  id     String    @id @default(cuid())
+  fromId String
+  from   BoardCard @relation("RelFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId   String
+  to     BoardCard @relation("RelTo", fields: [toId], references: [id], onDelete: Cascade)
+  // relacionado | bloqueia | bloqueado_por | duplica
+  type   String    @default("relacionado")
+
+  @@unique([fromId, toId, type])
 }

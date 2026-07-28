@@ -146,6 +146,10 @@ responsável" e "Designer responsável").
 
 ## 7. Log de mudanças (mais recente primeiro)
 
+- **2026-07-28**: Adicionada feature **Boards** (Kanban estilo ClickUp) em `/admin/boards`. Ver seção 9.
+  Novas tabelas: `Board`, `BoardTag`, `BoardCard` (self-relation `parentId` p/ subtarefas),
+  `CardChecklistItem`, `CardAttachment`, `CardComment`, `CardActivity` (timeline), `CardRelation`.
+  Migration `20260728000000_add_boards`. **Rodar `prisma migrate deploy` no console do Railway.**
 - **2026-07-13**: Adicionado login Google Workspace (domínio `@roipartners.com.br` + allowlist via
   `AdminUser`). `AdminUser.password` virou nullable.
 - **2026-07-13**: Removida escolha de gestor/designer pelo cliente no formulário público — agora
@@ -204,3 +208,31 @@ de exemplo que batiam exatamente com essas contas — validado antes de implemen
   cliente", gráfico de barras "Evolução do MRR")
 - `components/admin/Sidebar.tsx` — item "Financeiro" com badge "ADMIN" (só decorativo, já que
   `/admin/*` é 100% admin-only via proxy — operador nunca chega lá)
+
+---
+
+## 9. Boards (`/admin/boards`) — Kanban de tarefas
+
+Kanban estilo ClickUp para gestão interna de tarefas. **Admin-only** (fica sob `/admin/*`, gated pelo proxy).
+
+### Colunas (status fixos)
+`backlog` (Backlog) · `todo` (A Fazer) · `doing` (Fazendo) · `review` (Em Revisão) · `blocked` (Bloqueado) · `done` (Concluído). Constantes/labels em `lib/boards.ts` (`BOARD_STATUSES`, `STATUS_LABELS`).
+
+### Modelo
+- `Board` — name, team, color, `prefix` (ex: "MAR") + `cardSeq` (contador atômico p/ gerar código `MAR-127` via `nextCardCode()`).
+- `BoardCard` — code, title, description, status, `order` (Float, ordenação na coluna), assignee/coAssignee (→ `Collaborator`), tag (→ `BoardTag`), startDate/dueDate, `parentId` (self-relation → subtarefa), createdByName/Email (string, tirado da sessão). Soft-delete via `deletedAt`.
+- `BoardTag` (por board), `CardChecklistItem`, `CardAttachment` (data URL base64, **máx ~1,5 MB**, sem storage externo), `CardComment`, `CardActivity` (timeline/log — best-effort via `logActivity()`), `CardRelation` (from/to/type: relacionado|bloqueia|bloqueado_por|duplica).
+
+### Responsáveis = `Collaborator`
+Assignee/co-assignee referenciam `Collaborator` (as pessoas já cadastradas em Operadores). Admins sem Collaborator não aparecem como responsáveis — `createdBy` é gravado como string da sessão.
+
+### UI
+- `app/admin/boards/page.tsx` — lista de boards + criar board.
+- `app/admin/boards/[id]/page.tsx` — Kanban. Drag-and-drop **nativo HTML5** (sem lib), drop numa coluna faz PATCH do status (otimista). Quick-add por coluna.
+- `components/boards/CardPanel.tsx` — painel lateral do card (title, descrição, checklist, anexos, subtarefas, relações, comentários, timeline + sidebar com responsável, co-responsável, criado por, status, tag, início, vencimento).
+
+### APIs (`/api/admin/...`)
+`boards` (GET/POST) · `boards/[id]` (GET kanban / PATCH / DELETE soft) · `boards/[id]/tags` (POST) · `cards` (POST, aceita `parentId` p/ subtarefa) · `cards/[id]` (GET full / PATCH / DELETE soft) · `cards/[id]/{checklist,comments,attachments,relations}`. Todas exigem sessão; DELETE de board exige admin.
+
+### Deferido (não implementado nesta v1)
+Roadmap/List views, Planning Poker, épicos, story points, tipo de card, filtros no topo, múltiplos responsáveis, storage real de anexos (hoje é base64 no banco). Fáceis de somar depois sobre esse modelo.
