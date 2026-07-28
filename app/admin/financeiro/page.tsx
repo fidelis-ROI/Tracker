@@ -34,10 +34,10 @@ function formatBRL(value: number) {
 
 function MetricCard({ label, value, valueColor, sub, subEl }: { label: string; value: string; valueColor?: string; sub?: string; subEl?: React.ReactNode }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] px-6 py-[22px]">
-      <p className="text-[13px] text-[#8A8FA3] mb-2.5">{label}</p>
+    <div className="bg-surface border border-line rounded-[14px] px-6 py-[22px]">
+      <p className="text-[13px] text-dim mb-2.5">{label}</p>
       <p className="text-[26px] font-extrabold leading-none" style={{ color: valueColor ?? "#fff" }}>{value}</p>
-      {sub && <p className="text-[12.5px] text-[#6E7285] mt-1.5">{sub}</p>}
+      {sub && <p className="text-[12.5px] text-faint mt-1.5">{sub}</p>}
       {subEl}
     </div>
   );
@@ -60,10 +60,10 @@ export default function FinanceiroPage() {
     <div className="px-16 py-14">
       <div className="flex items-start justify-between mb-9">
         <div>
-          <h1 className="text-[34px] font-extrabold text-white tracking-[-0.01em] mb-2">Financeiro</h1>
-          <p className="text-base text-[#8A8FA3]">Visão administrativa da receita de toda a carteira</p>
+          <h1 className="text-[34px] font-extrabold text-ink tracking-[-0.01em] mb-2">Financeiro</h1>
+          <p className="text-base text-dim">Visão administrativa da receita de toda a carteira</p>
         </div>
-        <span className="text-[11px] font-bold tracking-[0.06em] text-[#8B6BFF] bg-[#7C1EFB]/[0.16] border border-[#7C1EFB]/[0.35] rounded-full px-4 py-1.5">
+        <span className="text-[11px] font-bold tracking-[0.06em] text-brand-soft bg-[#7C1EFB]/[0.16] border border-[#7C1EFB]/[0.35] rounded-full px-4 py-1.5">
           VISÃO ADMINISTRATIVA
         </span>
       </div>
@@ -71,10 +71,10 @@ export default function FinanceiroPage() {
       {loading || !data ? (
         <>
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-9">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[14px] bg-white/[0.03]" />)}
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[14px] bg-surface" />)}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-9">
-            {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[14px] bg-white/[0.03]" />)}
+            {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[14px] bg-surface" />)}
           </div>
         </>
       ) : (
@@ -123,30 +123,30 @@ export default function FinanceiroPage() {
           </div>
 
           {/* Receita por cliente */}
-          <h2 className="text-[19px] font-extrabold text-white mb-4">Receita por cliente</h2>
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] overflow-hidden mb-9">
+          <h2 className="text-[19px] font-extrabold text-ink mb-4">Receita por cliente</h2>
+          <div className="bg-surface border border-line rounded-[14px] overflow-hidden mb-9">
             {data.clients.length === 0 ? (
-              <p className="px-[26px] py-8 text-[#8A8FA3] text-sm text-center">
+              <p className="px-[26px] py-8 text-dim text-sm text-center">
                 Nenhum cliente ativo com ticket e data de contratação cadastrados.
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <div className="min-w-[760px]">
-                  <div className="grid grid-cols-[1.4fr_0.8fr_0.9fr_1fr_0.9fr_0.7fr] px-[26px] py-[18px] border-b border-white/[0.08]">
+                  <div className="grid grid-cols-[1.4fr_0.8fr_0.9fr_1fr_0.9fr_0.7fr] px-[26px] py-[18px] border-b border-line">
                     {["CLIENTE","TICKET","LT","RECEITA ACUMULADA","LTV PROJ.","NPS"].map(h => (
-                      <span key={h} className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">{h}</span>
+                      <span key={h} className="text-xs font-bold tracking-[0.06em] text-dim">{h}</span>
                     ))}
                   </div>
                   {data.clients.map((c, i) => (
                     <div
                       key={c.id}
-                      className={`grid grid-cols-[1.4fr_0.8fr_0.9fr_1fr_0.9fr_0.7fr] items-center px-[26px] py-5 ${i < data.clients.length - 1 ? "border-b border-white/[0.06]" : ""}`}
+                      className={`grid grid-cols-[1.4fr_0.8fr_0.9fr_1fr_0.9fr_0.7fr] items-center px-[26px] py-5 ${i < data.clients.length - 1 ? "border-b border-line" : ""}`}
                     >
-                      <span className="text-base font-semibold text-white">{c.name}</span>
-                      <span className="text-[14.5px] text-[#B7BBCB]">{formatBRL(c.ticket)}</span>
-                      <span className="text-[14.5px] text-[#B7BBCB]">{c.ltMonths} {c.ltMonths === 1 ? "mês" : "meses"}</span>
-                      <span className="text-[15px] font-bold text-[#8B6BFF]">{formatBRL(c.accumulatedRevenue)}</span>
-                      <span className="text-[14.5px] text-[#B7BBCB]">{formatBRL(c.ltvProjected)}</span>
+                      <span className="text-base font-semibold text-ink">{c.name}</span>
+                      <span className="text-[14.5px] text-ink-soft">{formatBRL(c.ticket)}</span>
+                      <span className="text-[14.5px] text-ink-soft">{c.ltMonths} {c.ltMonths === 1 ? "mês" : "meses"}</span>
+                      <span className="text-[15px] font-bold text-brand-soft">{formatBRL(c.accumulatedRevenue)}</span>
+                      <span className="text-[14.5px] text-ink-soft">{formatBRL(c.ltvProjected)}</span>
                       <span className="text-[14.5px] font-bold text-[#4ADE80]">{c.nps !== null ? c.nps : "—"}</span>
                     </div>
                   ))}
@@ -156,8 +156,8 @@ export default function FinanceiroPage() {
           </div>
 
           {/* Evolução do MRR */}
-          <h2 className="text-[19px] font-extrabold text-white mb-4">Evolução do MRR</h2>
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-7">
+          <h2 className="text-[19px] font-extrabold text-ink mb-4">Evolução do MRR</h2>
+          <div className="bg-surface border border-line rounded-[14px] p-7">
             <div className="flex gap-6 h-40">
               {data.mrrHistory.map((m, i) => {
                 const isLast = i === data.mrrHistory.length - 1;
@@ -174,7 +174,7 @@ export default function FinanceiroPage() {
                         title={formatBRL(m.value)}
                       />
                     </div>
-                    <span className={`text-[12.5px] ${isLast ? "text-[#B7BBCB] font-semibold" : "text-[#6E7285]"}`}>{m.label}</span>
+                    <span className={`text-[12.5px] ${isLast ? "text-ink-soft font-semibold" : "text-faint"}`}>{m.label}</span>
                   </div>
                 );
               })}

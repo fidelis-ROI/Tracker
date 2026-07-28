@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { LayoutGrid, Users, User, KanbanSquare, LogOut, ChevronRight } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { href: "/operador/dashboard", label: "Carteira", icon: LayoutGrid },
@@ -17,18 +18,18 @@ export function OperadorSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[280px] flex-shrink-0 bg-[#0B0E17] border-r border-white/[0.08] flex flex-col justify-between h-screen sticky top-0 py-7 px-5">
+    <aside className="w-[280px] flex-shrink-0 bg-canvas border-r border-line flex flex-col justify-between h-screen sticky top-0 py-7 px-5">
       <div>
-        <div className="flex items-center gap-3 pb-5 mb-5 border-b border-white/[0.08]">
-          <div className="w-10 h-10 rounded-xl bg-[#7C1EFB]/[0.16] border border-[#7C1EFB]/40 flex items-center justify-center flex-shrink-0">
+        <div className="flex items-center gap-3 pb-5 mb-5 border-b border-line">
+          <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center flex-shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M4 16L10 10L14 14L20 6" stroke="#A970FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M14 6H20V12" stroke="#A970FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 16L10 10L14 14L20 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M14 6H20V12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <div>
-            <p className="text-white font-extrabold text-[17px] leading-tight tracking-[-0.01em]">ROI Tracker</p>
-            <p className="text-[#8A8FA3] text-[12.5px] leading-tight">Portal do Operador</p>
+            <p className="text-ink font-extrabold text-[17px] leading-tight tracking-[-0.01em]">ROI Tracker</p>
+            <p className="text-dim text-[12.5px] leading-tight">Portal do Operador</p>
           </div>
         </div>
 
@@ -42,28 +43,31 @@ export function OperadorSidebar() {
                 className={cn(
                   "flex items-center justify-between px-4 py-3.5 rounded-[10px] text-[15px] transition-all group",
                   active
-                    ? "bg-[#7C1EFB]/[0.16] border border-[#7C1EFB]/40 text-white font-semibold"
-                    : "text-[#9BA0B4] hover:bg-white/[0.05] hover:text-white border border-transparent"
+                    ? "bg-[#7C1EFB]/[0.16] border border-[#7C1EFB]/40 text-ink font-semibold"
+                    : "text-dim hover:bg-surface-hover hover:text-ink border border-transparent"
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <Icon size={18} className={active ? "text-[#A970FF]" : "text-[#9BA0B4] group-hover:text-white"} />
+                  <Icon size={18} className={active ? "text-brand-soft" : "text-dim group-hover:text-ink"} />
                   <span>{label}</span>
                 </div>
-                {active && <ChevronRight size={14} className="text-[#A970FF]" strokeWidth={2.5} />}
+                {active && <ChevronRight size={14} className="text-brand-soft" strokeWidth={2.5} />}
               </Link>
             );
           })}
         </nav>
       </div>
 
-      <button
-        onClick={() => signOut({ callbackUrl: "/admin/login" })}
-        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-[10px] text-[15px] text-[#9BA0B4] hover:text-white hover:bg-white/[0.05] border-t border-white/[0.08] transition-all"
-      >
-        <LogOut size={18} />
-        Sair
-      </button>
+      <div className="border-t border-line pt-2 flex flex-col gap-0.5">
+        <ThemeToggle />
+        <button
+          onClick={() => signOut({ callbackUrl: "/admin/login" })}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-[10px] text-[14px] text-dim hover:text-ink hover:bg-surface-hover border border-transparent transition-all"
+        >
+          <LogOut size={17} />
+          Sair
+        </button>
+      </div>
     </aside>
   );
 }

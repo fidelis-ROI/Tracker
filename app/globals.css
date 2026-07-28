@@ -4,68 +4,155 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --bg-base: #00020A;
-  --primary: #1440FF;
-  --primary-deep: #0027D4;
-  --text-primary: #FFFFFF;
-  --text-muted: #8892A4;
-  --surface: #0A0F1E;
-  --border: #1A2140;
+/* ==========================================================================
+   Semantic design tokens
+   Only these flip between light/dark. Brand purple + status colors are the
+   same in both themes (see @theme below).
+   Dark is the default (:root); .light overrides.
+   ========================================================================== */
+:root,
+.dark {
+  color-scheme: dark;
 
-  --radius: 0.625rem;
-  --background: var(--bg-base);
-  --foreground: var(--text-primary);
-  --card: var(--surface);
-  --card-foreground: var(--text-primary);
-  --popover: var(--surface);
-  --popover-foreground: var(--text-primary);
-  --primary-color: var(--primary);
-  --primary-foreground: #FFFFFF;
-  --secondary: #0A0F1E;
-  --secondary-foreground: var(--text-primary);
-  --muted: var(--surface);
-  --muted-foreground: var(--text-muted);
-  --accent: var(--primary);
-  --accent-foreground: #FFFFFF;
-  --destructive: #ef4444;
-  --border-color: var(--border);
-  --input: var(--border);
-  --ring: var(--primary);
+  --canvas: #0B0E17;         /* page background */
+  --surface: #12151F;        /* panels / cards over canvas */
+  --surface-hover: #191D29;  /* hovered surface */
+  --raised: #12141F;         /* modals, kanban tiles, dropdowns, inputs */
+  --raised-2: #0B0E17;       /* inputs inside raised surfaces */
+
+  --line: rgba(255, 255, 255, 0.09);       /* default borders */
+  --line-strong: rgba(255, 255, 255, 0.17); /* emphasized borders */
+
+  --ink: #FFFFFF;            /* primary text */
+  --ink-soft: #C7CBD9;       /* bright secondary text */
+  --dim: #8A8FA3;            /* muted text (labels, secondary) */
+  --faint: #6E7285;          /* tertiary text (meta, hints) */
+
+  --brand: #7C1EFB;          /* primary purple */
+  --brand-hover: #6A0FE8;
+  --brand-strong: #5B21F0;   /* solid buttons */
+  --brand-strong-hover: #4A1AD0;
+  --brand-soft: #A970FF;     /* icons / light accents */
+  --brand-tint: rgba(124, 30, 251, 0.16); /* subtle brand wash */
+  --brand-ring: rgba(124, 30, 251, 0.55);
+
+  --success: #22C55E;
+  --success-soft: #4ADE80;
+  --danger: #EF4444;
+  --danger-soft: #F87171;
+  --warning: #F59E0B;
+  --warning-soft: #EAB308;
+  --info: #5B8DFF;
 }
 
+.light {
+  color-scheme: light;
+
+  --canvas: #F4F5FA;
+  --surface: #FFFFFF;
+  --surface-hover: #EDEFF6;
+  --raised: #FFFFFF;
+  --raised-2: #F4F5FA;
+
+  --line: rgba(17, 20, 33, 0.10);
+  --line-strong: rgba(17, 20, 33, 0.18);
+
+  --ink: #14141C;
+  --ink-soft: #2C3040;
+  --dim: #5B6172;
+  --faint: #8A8FA3;
+
+  --brand: #7C1EFB;
+  --brand-hover: #6A0FE8;
+  --brand-strong: #6D28D9;
+  --brand-strong-hover: #5B21F0;
+  --brand-soft: #7C1EFB;
+  --brand-tint: rgba(124, 30, 251, 0.10);
+  --brand-ring: rgba(124, 30, 251, 0.45);
+
+  --success: #16A34A;
+  --success-soft: #16A34A;
+  --danger: #DC2626;
+  --danger-soft: #DC2626;
+  --warning: #D97706;
+  --warning-soft: #B45309;
+  --info: #2563EB;
+}
+
+/* Expose tokens as Tailwind color utilities (bg-*, text-*, border-*). */
 @theme inline {
-  --color-background: var(--bg-base);
-  --color-foreground: var(--text-primary);
-  --color-card: var(--surface);
-  --color-card-foreground: var(--text-primary);
-  --color-popover: var(--surface);
-  --color-popover-foreground: var(--text-primary);
-  --color-primary: var(--primary);
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #0A0F1E;
-  --color-secondary-foreground: var(--text-primary);
-  --color-muted: var(--surface);
-  --color-muted-foreground: var(--text-muted);
-  --color-accent: var(--primary);
-  --color-accent-foreground: #ffffff;
-  --color-destructive: #ef4444;
-  --color-border: var(--border);
-  --color-input: var(--border);
-  --color-ring: var(--primary);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-raised: var(--raised);
+  --color-raised-2: var(--raised-2);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-dim: var(--dim);
+  --color-faint: var(--faint);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-strong-hover: var(--brand-strong-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-tint: var(--brand-tint);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-* {
-  border-color: var(--border);
+/* shadcn/ui token bridge — keeps Dialog/Sheet/etc. theme-aware. */
+:root {
+  --radius: 0.625rem;
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--raised);
+  --card-foreground: var(--ink);
+  --popover: var(--raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface);
+  --muted-foreground: var(--dim);
+  --accent: var(--brand);
+  --accent-foreground: #ffffff;
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--brand-ring);
 }
 
 body {
-  background-color: var(--bg-base);
-  color: var(--text-primary);
+  background-color: var(--canvas);
+  color: var(--ink);
+}
+
+/* Smoothly cross-fade between themes. */
+body,
+body * {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+body *:where(button, a, [role="button"]) {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, transform, opacity;
 }
 
 .font-titillium {
@@ -76,10 +163,10 @@ body {
   font-family: var(--font-manrope), sans-serif;
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--surface); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 5px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--dim); background-clip: content-box; }
 
 @keyframes roi-fade-up {
   from { opacity: 0; transform: translateY(10px); }

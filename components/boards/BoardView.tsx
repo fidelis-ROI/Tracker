@@ -118,16 +118,16 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
     <div className="px-8 py-8 h-screen flex flex-col">
       <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
-          <Link href={basePath} className="flex items-center gap-1.5 text-[13px] text-[#8A8FA3] hover:text-white transition-all mb-2">
+          <Link href={basePath} className="flex items-center gap-1.5 text-[13px] text-dim hover:text-ink transition-all mb-2">
             <ArrowLeft size={14} /> Boards
           </Link>
           <div className="flex items-center gap-3">
             <span className="w-2.5 h-8 rounded-full" style={{ backgroundColor: board?.color ?? "#8A8FA3" }} />
             <div>
-              <h1 className="text-[26px] font-extrabold text-white tracking-[-0.01em] leading-tight">
+              <h1 className="text-[26px] font-extrabold text-ink tracking-[-0.01em] leading-tight">
                 {board?.name ?? <span className="opacity-40">Carregando…</span>}
               </h1>
-              {board?.team && <p className="text-[13px] text-[#8A8FA3]">{board.team}</p>}
+              {board?.team && <p className="text-[13px] text-dim">{board.team}</p>}
             </div>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
       {loading ? (
         <div className="grid grid-cols-6 gap-4 flex-1">
           {COLUMNS.map((c) => (
-            <Skeleton key={c.key} className="rounded-[14px] bg-white/[0.03]" />
+            <Skeleton key={c.key} className="rounded-[14px] bg-surface" />
           ))}
         </div>
       ) : (
@@ -159,21 +159,21 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                 className={`w-[300px] flex-shrink-0 flex flex-col rounded-[14px] border transition-colors ${
                   dragOverCol === col.key
                     ? "border-[#7C1EFB]/50 bg-[#7C1EFB]/[0.06]"
-                    : "border-white/[0.07] bg-white/[0.02]"
+                    : "border-line bg-surface"
                 }`}
               >
-                <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.06]">
+                <div className="flex items-center justify-between px-4 py-3.5 border-b border-line">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLUMN_ACCENT[col.key] }} />
-                    <span className="text-[14px] font-bold text-white">{col.label}</span>
-                    <span className="text-[12px] text-[#6E7285]">{colCards.length}</span>
+                    <span className="text-[14px] font-bold text-ink">{col.label}</span>
+                    <span className="text-[12px] text-faint">{colCards.length}</span>
                   </div>
                   <button
                     onClick={() => {
                       setAdding(col.key);
                       setNewTitle("");
                     }}
-                    className="text-[#8A8FA3] hover:text-white transition-all"
+                    className="text-dim hover:text-ink transition-all"
                     title="Adicionar card"
                   >
                     <Plus size={16} />
@@ -190,7 +190,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                         onDragStart={() => setDragId(card.id)}
                         onDragEnd={() => setDragId(null)}
                         onClick={() => setOpenCardId(card.id)}
-                        className={`bg-[#12141F] border border-white/[0.09] rounded-[11px] p-3.5 cursor-pointer hover:border-white/[0.18] transition-all ${
+                        className={`bg-raised border border-line rounded-[11px] p-3.5 cursor-pointer hover:border-line-strong transition-all ${
                           dragId === card.id ? "opacity-40" : ""
                         }`}
                       >
@@ -202,7 +202,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                             {card.tag.name}
                           </span>
                         )}
-                        <p className="text-[14.5px] font-semibold text-white leading-snug mb-2.5">{card.title}</p>
+                        <p className="text-[14.5px] font-semibold text-ink leading-snug mb-2.5">{card.title}</p>
 
                         {due && (
                           <span
@@ -211,7 +211,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                                 ? "bg-red-500/15 text-red-400"
                                 : due.soon
                                 ? "bg-amber-500/15 text-amber-400"
-                                : "bg-white/[0.06] text-[#8A8FA3]"
+                                : "bg-surface-hover text-dim"
                             }`}
                           >
                             {due.label}
@@ -219,7 +219,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                         )}
 
                         <div className="flex items-center justify-between mt-1">
-                          <div className="flex items-center gap-2.5 text-[11.5px] text-[#6E7285]">
+                          <div className="flex items-center gap-2.5 text-[11.5px] text-faint">
                             {card.counts.checklistTotal > 0 && (
                               <span className="flex items-center gap-1">
                                 <CheckSquare size={12} />
@@ -256,13 +256,13 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                             ) : null}
                           </div>
                         </div>
-                        <p className="text-[10.5px] font-mono text-[#4B4F63] mt-2">{card.code}</p>
+                        <p className="text-[10.5px] font-mono text-faint mt-2">{card.code}</p>
                       </div>
                     );
                   })}
 
                   {adding === col.key ? (
-                    <div className="bg-[#12141F] border border-[#7C1EFB]/40 rounded-[11px] p-2.5">
+                    <div className="bg-raised border border-[#7C1EFB]/40 rounded-[11px] p-2.5">
                       <textarea
                         autoFocus
                         value={newTitle}
@@ -277,7 +277,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                         onBlur={() => quickAdd(col.key)}
                         placeholder="Título do card…"
                         rows={2}
-                        className="w-full bg-transparent text-[14px] text-white placeholder:text-[#6E7285] resize-none focus:outline-none"
+                        className="w-full bg-transparent text-[14px] text-ink placeholder:text-faint resize-none focus:outline-none"
                       />
                     </div>
                   ) : (
@@ -286,7 +286,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                         setAdding(col.key);
                         setNewTitle("");
                       }}
-                      className="w-full flex items-center gap-1.5 text-[13px] text-[#6E7285] hover:text-white px-2 py-2 rounded-lg hover:bg-white/[0.04] transition-all"
+                      className="w-full flex items-center gap-1.5 text-[13px] text-faint hover:text-ink px-2 py-2 rounded-lg hover:bg-surface transition-all"
                     >
                       <Plus size={14} /> Adicionar card
                     </button>

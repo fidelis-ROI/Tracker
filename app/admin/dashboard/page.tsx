@@ -56,11 +56,11 @@ function FilterSelect({ value, onChange, children }: { value: string; onChange: 
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="appearance-none bg-white/[0.04] border border-white/10 rounded-[10px] pl-[22px] pr-11 py-4 text-[15px] text-white focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] cursor-pointer"
+        className="appearance-none bg-surface border border-line rounded-[10px] pl-[22px] pr-11 py-4 text-[15px] text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] cursor-pointer"
       >
         {children}
       </select>
-      <ChevronDown size={14} strokeWidth={2.5} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#8A8FA3]" />
+      <ChevronDown size={14} strokeWidth={2.5} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-dim" />
     </div>
   );
 }
@@ -163,8 +163,8 @@ export default function DashboardPage() {
 
   return (
     <div className="px-16 py-14">
-      <h1 className="text-[34px] font-extrabold text-white tracking-[-0.01em] mb-2">Dashboard</h1>
-      <p className="text-base text-[#8A8FA3] mb-8">Indicadores e Resultados — {monthLabel(selectedMonth)}</p>
+      <h1 className="text-[34px] font-extrabold text-ink tracking-[-0.01em] mb-2">Dashboard</h1>
+      <p className="text-base text-dim mb-8">Indicadores e Resultados — {monthLabel(selectedMonth)}</p>
 
       {/* Filtros */}
       <div className="flex gap-3.5 mb-7 flex-wrap">
@@ -188,7 +188,7 @@ export default function DashboardPage() {
       {/* Métricas */}
       {loading ? (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-[14px] bg-white/[0.03]" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-[14px] bg-surface" />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
@@ -201,10 +201,10 @@ export default function DashboardPage() {
 
       {/* Segregação por Marca */}
       <div className="mb-9">
-        <h2 className="text-[21px] font-extrabold text-white mb-4">Por Marca</h2>
+        <h2 className="text-[21px] font-extrabold text-ink mb-4">Por Marca</h2>
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[14px] bg-white/[0.03]" />)}
+            {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[14px] bg-surface" />)}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -228,48 +228,48 @@ export default function DashboardPage() {
 
       {/* Respostas do Período */}
       <div className="mb-9">
-        <h2 className="text-[21px] font-extrabold text-white mb-4">Respostas do Período</h2>
+        <h2 className="text-[21px] font-extrabold text-ink mb-4">Respostas do Período</h2>
         {loading ? (
           <div className="space-y-2">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg bg-white/[0.03]" />)}
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg bg-surface" />)}
           </div>
         ) : responses.length === 0 ? (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] py-[70px] px-5 flex flex-col items-center justify-center gap-3.5">
-            <Search size={34} strokeWidth={1.8} className="text-[#5A5F72]" />
-            <p className="text-base text-[#8A8FA3]">Nenhuma resposta encontrada para este período.</p>
+          <div className="bg-surface border border-line rounded-[14px] py-[70px] px-5 flex flex-col items-center justify-center gap-3.5">
+            <Search size={34} strokeWidth={1.8} className="text-faint" />
+            <p className="text-base text-dim">Nenhuma resposta encontrada para este período.</p>
           </div>
         ) : (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] overflow-hidden">
+          <div className="bg-surface border border-line rounded-[14px] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/[0.08]">
+                  <tr className="border-b border-line">
                     {["Cliente","Operador","Aquisição","Entrega","Feedback","Data"].map(h => (
-                      <th key={h} className="text-left px-5 py-3 text-xs font-bold text-[#8A8FA3] uppercase tracking-widest">{h}</th>
+                      <th key={h} className="text-left px-5 py-3 text-xs font-bold text-dim uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {responses.map((r, i) => (
-                    <tr key={r.id} className={`border-b border-white/[0.06] ${i % 2 === 1 ? "bg-white/[0.02]" : ""}`}>
-                      <td className="px-5 py-3 text-white font-medium">{r.client.name}</td>
-                      <td className="px-5 py-3 text-[#8A8FA3] text-xs">{r.trafego?.name ?? "—"}</td>
+                    <tr key={r.id} className={`border-b border-line ${i % 2 === 1 ? "bg-surface" : ""}`}>
+                      <td className="px-5 py-3 text-ink font-medium">{r.client.name}</td>
+                      <td className="px-5 py-3 text-dim text-xs">{r.trafego?.name ?? "—"}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-white font-bold">{r.trafegoScore}</span>
+                          <span className="text-ink font-bold">{r.trafegoScore}</span>
                           <NpsLabel score={r.trafegoScore} />
                         </div>
                       </td>
                       <td className="px-5 py-3">
                         {r.designerScore !== null && r.designerScore !== undefined ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-white font-bold">{r.designerScore}</span>
+                            <span className="text-ink font-bold">{r.designerScore}</span>
                             <NpsLabel score={r.designerScore} />
                           </div>
-                        ) : <span className="text-[#8A8FA3]/40 text-xs">—</span>}
+                        ) : <span className="text-dim/40 text-xs">—</span>}
                       </td>
-                      <td className="px-5 py-3 text-[#8A8FA3] text-xs max-w-xs truncate">{r.feedback || <span className="opacity-40">—</span>}</td>
-                      <td className="px-5 py-3 text-[#8A8FA3] text-xs whitespace-nowrap">{new Date(r.submittedAt).toLocaleDateString("pt-BR")}</td>
+                      <td className="px-5 py-3 text-dim text-xs max-w-xs truncate">{r.feedback || <span className="opacity-40">—</span>}</td>
+                      <td className="px-5 py-3 text-dim text-xs whitespace-nowrap">{new Date(r.submittedAt).toLocaleDateString("pt-BR")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -281,38 +281,38 @@ export default function DashboardPage() {
 
       {/* Ranking de Operadores */}
       <div>
-        <h2 className="text-[21px] font-extrabold text-white mb-4">Ranking de Operadores</h2>
+        <h2 className="text-[21px] font-extrabold text-ink mb-4">Ranking de Operadores</h2>
         {loading ? (
           <div className="space-y-2">
-            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-[14px] bg-white/[0.03]" />)}
+            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-[14px] bg-surface" />)}
           </div>
         ) : collabStats.length === 0 ? (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] py-[60px] px-5 flex items-center justify-center">
-            <p className="text-base text-[#8A8FA3]">Nenhum dado para este período.</p>
+          <div className="bg-surface border border-line rounded-[14px] py-[60px] px-5 flex items-center justify-center">
+            <p className="text-base text-dim">Nenhum dado para este período.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {collabStats.map((c, i) => (
-              <div key={c.id} className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] overflow-hidden">
-                <button onClick={() => toggleCollab(c.id)} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.04] transition-all text-left">
-                  <span className="text-[#8A8FA3] font-bold text-sm w-6">#{i + 1}</span>
+              <div key={c.id} className="bg-surface border border-line rounded-[14px] overflow-hidden">
+                <button onClick={() => toggleCollab(c.id)} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-surface transition-all text-left">
+                  <span className="text-dim font-bold text-sm w-6">#{i + 1}</span>
                   <div className="flex-1">
-                    <p className="text-white font-semibold text-sm">{c.name}</p>
-                    <p className="text-[#8A8FA3] text-xs">{c.role === "gestor_trafego" ? "Operador" : "Designer"}</p>
+                    <p className="text-ink font-semibold text-sm">{c.name}</p>
+                    <p className="text-dim text-xs">{c.role === "gestor_trafego" ? "Operador" : "Designer"}</p>
                   </div>
                   <div className="text-right mr-4">
-                    <p className="text-2xl font-bold text-white">{c.avg.toFixed(1)}</p>
-                    <p className="text-xs text-[#8A8FA3]">{c.scores.length} aval.</p>
+                    <p className="text-2xl font-bold text-ink">{c.avg.toFixed(1)}</p>
+                    <p className="text-xs text-dim">{c.scores.length} aval.</p>
                   </div>
                   <NpsLabel score={Math.round(c.avg)} />
-                  {c.expanded ? <ChevronUp size={16} className="text-[#8A8FA3] ml-2" /> : <ChevronDown size={16} className="text-[#8A8FA3] ml-2" />}
+                  {c.expanded ? <ChevronUp size={16} className="text-dim ml-2" /> : <ChevronDown size={16} className="text-dim ml-2" />}
                 </button>
                 {c.expanded && (
-                  <div className="px-5 pb-4 border-t border-white/[0.08] pt-3">
-                    <p className="text-xs text-[#8A8FA3] mb-2">Avaliado por:</p>
+                  <div className="px-5 pb-4 border-t border-line pt-3">
+                    <p className="text-xs text-dim mb-2">Avaliado por:</p>
                     <div className="flex flex-wrap gap-2">
                       {c.clients.map(name => (
-                        <span key={name} className="px-2 py-1 bg-white/[0.06] rounded text-xs text-white">{name}</span>
+                        <span key={name} className="px-2 py-1 bg-surface-hover rounded text-xs text-ink">{name}</span>
                       ))}
                     </div>
                   </div>
@@ -328,24 +328,24 @@ export default function DashboardPage() {
 
 function BrandCard({ label, accent, nps, ticket, count }: { label: string; accent: "purple" | "blue"; nps: number | null; ticket: number | null; count: number }) {
   const colors = accent === "purple"
-    ? { border: "border-[#7C1EFB]/30", dot: "bg-[#A970FF]", text: "text-[#A970FF]" }
+    ? { border: "border-[#7C1EFB]/30", dot: "bg-[#A970FF]", text: "text-brand-soft" }
     : { border: "border-[#1440FF]/30", dot: "bg-[#5B8DFF]", text: "text-[#5B8DFF]" };
 
   return (
-    <div className={`bg-white/[0.03] border ${colors.border} rounded-[14px] p-[22px]`}>
+    <div className={`bg-surface border ${colors.border} rounded-[14px] p-[22px]`}>
       <div className="flex items-center gap-2 mb-5">
         <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
         <span className={`text-sm font-bold ${colors.text}`}>{label}</span>
-        <span className="text-xs text-[#8A8FA3] ml-auto">{count} cliente{count !== 1 ? "s" : ""}</span>
+        <span className="text-xs text-dim ml-auto">{count} cliente{count !== 1 ? "s" : ""}</span>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3] mb-1.5">NPS MÉDIO</p>
-          <p className="text-2xl font-extrabold text-white">{nps !== null ? `${nps > 0 ? "+" : ""}${nps}` : "—"}</p>
+          <p className="text-xs font-bold tracking-[0.06em] text-dim mb-1.5">NPS MÉDIO</p>
+          <p className="text-2xl font-extrabold text-ink">{nps !== null ? `${nps > 0 ? "+" : ""}${nps}` : "—"}</p>
         </div>
         <div>
-          <p className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3] mb-1.5">TICKET MÉDIO</p>
-          <p className="text-2xl font-extrabold text-white">
+          <p className="text-xs font-bold tracking-[0.06em] text-dim mb-1.5">TICKET MÉDIO</p>
+          <p className="text-2xl font-extrabold text-ink">
             {ticket !== null ? `R$ ${ticket.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "—"}
           </p>
         </div>
@@ -356,15 +356,15 @@ function BrandCard({ label, accent, nps, ticket, count }: { label: string; accen
 
 function MetricTile({ label, value, icon: Icon, sub }: { label: string; value: string | number; icon: React.ElementType; sub: string }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-[22px]">
+    <div className="bg-surface border border-line rounded-[14px] p-[22px]">
       <div className="flex items-start justify-between">
-        <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">{label}</span>
+        <span className="text-xs font-bold tracking-[0.06em] text-dim">{label}</span>
         <div className="w-8 h-8 rounded-lg bg-[#7C1EFB]/25 flex items-center justify-center flex-shrink-0">
-          <Icon size={16} className="text-[#A970FF]" />
+          <Icon size={16} className="text-brand-soft" />
         </div>
       </div>
-      <p className="text-[32px] font-extrabold text-white leading-none my-[18px]">{value}</p>
-      <p className="text-[13.5px] text-[#8A8FA3]">{sub}</p>
+      <p className="text-[32px] font-extrabold text-ink leading-none my-[18px]">{value}</p>
+      <p className="text-[13.5px] text-dim">{sub}</p>
     </div>
   );
 }

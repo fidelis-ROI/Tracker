@@ -242,3 +242,29 @@ Assignee/co-assignee referenciam `Collaborator` (as pessoas já cadastradas em O
 
 ### Deferido (não implementado nesta v1)
 Roadmap/List views, Planning Poker, épicos, story points, tipo de card, filtros no topo, múltiplos responsáveis, storage real de anexos (hoje é base64 no banco). Fáceis de somar depois sobre esse modelo.
+
+---
+
+## 10. Tema claro/escuro + design tokens (2026-07-28)
+
+O app agora suporta **modo claro e escuro** (antes era só escuro, com cores hardcoded).
+
+### Sistema de tokens (`app/globals.css`)
+Tokens semânticos em CSS vars, com valores para `.dark` (padrão, = `:root`) e `.light`. Só eles mudam entre temas — **roxo da marca e cores de status são iguais nos dois**. Expostos como utilities Tailwind v4 via `@theme inline`:
+- Superfícies: `bg-canvas` (fundo), `bg-surface` (painéis/cards), `bg-surface-hover`, `bg-raised` (modais, tiles de kanban, inputs), `bg-raised-2` (input dentro de superfície).
+- Bordas: `border-line`, `border-line-strong`.
+- Texto: `text-ink` (primário), `text-ink-soft`, `text-dim` (labels/secundário), `text-faint` (meta/hints).
+- Marca: `text-brand`/`bg-brand` (#7C1EFB), `text-brand-soft` (ícones), `bg-brand-tint`. **Botões roxos sólidos e texto branco sobre eles ficam literais** (`bg-[#5B21F0]`, `text-white`) — funcionam nos dois temas.
+- Status: `text-success/-soft`, `text-danger/-soft`, `text-warning/-soft`, `text-info`.
+
+### Como está ligado
+- `next-themes` (já era dependência) via `components/ThemeProvider.tsx` (attribute=class, defaultTheme=dark, enableSystem) no `app/layout.tsx` (com `suppressHydrationWarning`). Usuário atual continua vendo escuro por padrão.
+- `components/ThemeToggle.tsx` — toggle claro/escuro. `variant="full"` nas duas sidebars (acima do "Sair"); `variant="icon"` no canto da tela de login.
+- Sonner e componentes shadcn (Dialog/Sheet) já são theme-aware via a ponte de tokens `--background/--card/--popover/...` no globals.
+
+### O que NÃO foi convertido (de propósito)
+- **Tela pública de voto `/r/[slug]`** e `components/nps/RatingScale.tsx`: continuam com tema de marca fixo (escuro ROI / azul NitroAds) — é client-facing, não tem toggle. Se quiser tema claro nela também depois, dá pra estender os tokens.
+- `components/nps/NpsLabel.tsx`: usa cores de status (independentes de tema), ok.
+
+### Migração (como foi feita)
+Conversão mecânica (perl) mapeando as ~640 cores hardcoded → tokens, nos arquivos internos (admin/*, operador/*, boards, sidebars, MetricCard, PageHeader). Login convertido à mão (inputs + botão Google branco preservado). Depois um passe corrigindo `text-white`→`text-ink` que tinha sido trocado errado em botões roxos sólidos (restaurado pra `text-white`). Sem mudança de schema/banco.

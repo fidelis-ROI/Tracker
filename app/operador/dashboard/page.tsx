@@ -35,15 +35,15 @@ function monthLabel(month: string) {
 
 function MetricTile({ label, value, icon: Icon, sub }: { label: string; value: string | number; icon: React.ElementType; sub: string }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-[22px]">
+    <div className="bg-surface border border-line rounded-[14px] p-[22px]">
       <div className="flex items-start justify-between">
-        <span className="text-xs font-bold tracking-[0.06em] text-[#8A8FA3]">{label}</span>
+        <span className="text-xs font-bold tracking-[0.06em] text-dim">{label}</span>
         <div className="w-8 h-8 rounded-lg bg-[#7C1EFB]/25 flex items-center justify-center flex-shrink-0">
-          <Icon size={16} className="text-[#A970FF]" />
+          <Icon size={16} className="text-brand-soft" />
         </div>
       </div>
-      <p className="text-[32px] font-extrabold text-white leading-none my-[18px]">{value}</p>
-      <p className="text-[13.5px] text-[#8A8FA3]">{sub}</p>
+      <p className="text-[32px] font-extrabold text-ink leading-none my-[18px]">{value}</p>
+      <p className="text-[13.5px] text-dim">{sub}</p>
     </div>
   );
 }
@@ -67,12 +67,12 @@ export default function OperadorDashboardPage() {
 
   return (
     <div className="px-16 py-14">
-      <h1 className="text-[34px] font-extrabold text-white tracking-[-0.01em] mb-2">Carteira</h1>
-      <p className="text-base text-[#8A8FA3] mb-8">Visão geral dos seus clientes e indicadores</p>
+      <h1 className="text-[34px] font-extrabold text-ink tracking-[-0.01em] mb-2">Carteira</h1>
+      <p className="text-base text-dim mb-8">Visão geral dos seus clientes e indicadores</p>
 
       {loading ? (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-[14px] bg-white/[0.03]" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-[14px] bg-surface" />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
@@ -83,15 +83,15 @@ export default function OperadorDashboardPage() {
         </div>
       )}
 
-      <h2 className="text-[21px] font-extrabold text-white mb-4">Clientes na Carteira</h2>
+      <h2 className="text-[21px] font-extrabold text-ink mb-4">Clientes na Carteira</h2>
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-[14px] bg-white/[0.03]" />)}
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-[14px] bg-surface" />)}
         </div>
       ) : portfolio.length === 0 ? (
-        <div className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] py-[70px] px-5 flex flex-col items-center justify-center gap-3.5">
-          <Search size={34} strokeWidth={1.8} className="text-[#5A5F72]" />
-          <p className="text-base text-[#8A8FA3]">Nenhum cliente na carteira. Solicite ao admin para atribuir clientes.</p>
+        <div className="bg-surface border border-line rounded-[14px] py-[70px] px-5 flex flex-col items-center justify-center gap-3.5">
+          <Search size={34} strokeWidth={1.8} className="text-faint" />
+          <p className="text-base text-dim">Nenhum cliente na carteira. Solicite ao admin para atribuir clientes.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -102,15 +102,15 @@ export default function OperadorDashboardPage() {
             const lastResponse = client.responses[0];
 
             return (
-              <div key={client.id} className="bg-white/[0.03] border border-white/[0.08] rounded-[14px] p-5">
+              <div key={client.id} className="bg-surface border border-line rounded-[14px] p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="text-white font-semibold text-sm">{client.name}</p>
-                    <p className="text-[#8A8FA3] text-xs mt-0.5">
+                    <p className="text-ink font-semibold text-sm">{client.name}</p>
+                    <p className="text-dim text-xs mt-0.5">
                       {scores.length} avaliação{scores.length !== 1 ? "ões" : ""}
                     </p>
                   </div>
-                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${client.active ? "bg-[#5B21F0]/[0.22] text-[#8B6BFF]" : "bg-white/[0.06] border border-white/10 text-[#9BA0B4]"}`}>
+                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${client.active ? "bg-[#5B21F0]/[0.22] text-brand-soft" : "bg-surface-hover border border-line text-dim"}`}>
                     {client.active ? "Ativo" : "Inativo"}
                   </span>
                 </div>
@@ -118,10 +118,10 @@ export default function OperadorDashboardPage() {
                 {scores.length > 0 ? (
                   <>
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="text-3xl font-extrabold text-white">{clientAvg!.toFixed(1)}</span>
+                      <span className="text-3xl font-extrabold text-ink">{clientAvg!.toFixed(1)}</span>
                       <div>
                         {clientNps !== null && (
-                          <p className="text-xs text-[#8A8FA3]">
+                          <p className="text-xs text-dim">
                             NPS: <span className={clientNps >= 0 ? "text-[#4ADE80]" : "text-[#F87171]"}>{clientNps > 0 ? "+" : ""}{clientNps}</span>
                           </p>
                         )}
@@ -147,13 +147,13 @@ export default function OperadorDashboardPage() {
                     </div>
 
                     {lastResponse && (
-                      <p className="text-xs text-[#8A8FA3]">
+                      <p className="text-xs text-dim">
                         Última avaliação: {monthLabel(lastResponse.month)}
                       </p>
                     )}
                   </>
                 ) : (
-                  <p className="text-[#8A8FA3]/40 text-sm">Sem avaliações ainda</p>
+                  <p className="text-dim/40 text-sm">Sem avaliações ainda</p>
                 )}
               </div>
             );

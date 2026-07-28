@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -71,23 +72,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#05070d] flex items-center justify-center p-6 font-sans">
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-6 font-sans">
+      <div className="absolute top-5 right-5">
+        <ThemeToggle variant="icon" />
+      </div>
       <div className="w-full max-w-[420px] flex flex-col items-center animate-[roi-fade-up_0.5s_ease-out]">
-        <div className="w-[72px] h-[72px] rounded-[20px] bg-white flex items-center justify-center p-4 mb-[22px] shadow-[0_8px_30px_rgba(121,25,255,0.35)]">
+        <div className="w-[72px] h-[72px] rounded-[20px] bg-brand flex items-center justify-center p-4 mb-[22px] shadow-[0_8px_30px_rgba(121,25,255,0.35)]">
           <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-            <path d="M4 16L10 10L14 14L20 6" stroke="#7919FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M14 6H20V12" stroke="#7919FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 16L10 10L14 14L20 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M14 6H20V12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
 
-        <h1 className="text-[30px] font-extrabold text-[#F5F7FF] tracking-[-0.02em] text-center">ROI Tracker</h1>
-        <p className="text-[15px] text-[#7C86A8] mt-1.5 text-center">Central de Performance</p>
+        <h1 className="text-[30px] font-extrabold text-ink tracking-[-0.02em] text-center">ROI Tracker</h1>
+        <p className="text-[15px] text-dim mt-1.5 text-center">Central de Performance</p>
 
         <button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={googleLoading}
-          className="w-full mt-9 bg-white hover:bg-[#F2F2F2] disabled:opacity-60 border-none rounded-xl px-[18px] py-[14px] text-[15px] font-bold text-[#12141c] flex items-center justify-center gap-2.5 transition-all"
+          className="w-full mt-9 bg-white hover:bg-[#F2F2F2] disabled:opacity-60 border border-line rounded-xl px-[18px] py-[14px] text-[15px] font-bold text-[#12141c] flex items-center justify-center gap-2.5 transition-all"
         >
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.82Z" />
@@ -99,32 +103,32 @@ export default function LoginPage() {
         </button>
 
         <div className="w-full flex items-center gap-3 mt-6">
-          <div className="h-px flex-1 bg-white/10" />
-          <span className="text-[12px] text-[#525C7A]">ou</span>
-          <div className="h-px flex-1 bg-white/10" />
+          <div className="h-px flex-1 bg-line" />
+          <span className="text-[12px] text-faint">ou</span>
+          <div className="h-px flex-1 bg-line" />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="w-full mt-6">
           <div>
-            <label className="text-[11px] font-bold tracking-[0.08em] text-[#6B7494] block mb-2">E-MAIL DE ACESSO</label>
+            <label className="text-[11px] font-bold tracking-[0.08em] text-faint block mb-2">E-MAIL DE ACESSO</label>
             <input
               {...register("email")}
               type="email"
               placeholder="contato@roi.com.br"
               autoComplete="email"
-              className="w-full box-border bg-[#EEF1FA] border-none rounded-xl px-[18px] py-4 text-[15px] text-[#12141c] placeholder:text-[#12141c]/40 outline-none focus:ring-2 focus:ring-[#7919FF] transition-all"
+              className="w-full box-border bg-raised-2 border border-line rounded-xl px-[18px] py-4 text-[15px] text-ink placeholder:text-faint outline-none focus:ring-2 focus:ring-[#7919FF] transition-all"
             />
             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
           <div className="mt-[22px]">
-            <label className="text-[11px] font-bold tracking-[0.08em] text-[#6B7494] block mb-2">SENHA</label>
+            <label className="text-[11px] font-bold tracking-[0.08em] text-faint block mb-2">SENHA</label>
             <input
               {...register("password")}
               type="password"
               placeholder="••••••••••••••"
               autoComplete="current-password"
-              className="w-full box-border bg-[#EEF1FA] border-none rounded-xl px-[18px] py-4 text-[15px] text-[#12141c] placeholder:text-[#12141c]/40 outline-none focus:ring-2 focus:ring-[#7919FF] transition-all"
+              className="w-full box-border bg-raised-2 border border-line rounded-xl px-[18px] py-4 text-[15px] text-ink placeholder:text-faint outline-none focus:ring-2 focus:ring-[#7919FF] transition-all"
             />
             {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
           </div>
@@ -143,7 +147,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-[26px] text-[13px] text-[#525C7A] text-center">Dados que viram decisão.</p>
+        <p className="mt-[26px] text-[13px] text-faint text-center">Dados que viram decisão.</p>
       </div>
     </div>
   );

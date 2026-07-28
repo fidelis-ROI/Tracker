@@ -20,21 +20,21 @@ export function MetricCard({ label, value, icon: Icon, sub, highlight, className
       )}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-[#8892A4] uppercase tracking-widest font-titillium">
+        <span className="text-xs font-semibold text-dim uppercase tracking-widest font-titillium">
           {label}
         </span>
         <div
           className={cn(
             "w-8 h-8 rounded-lg flex items-center justify-center",
-            highlight ? "bg-[#1440FF]/20 text-[#1440FF]" : "bg-[#1A2140] text-[#8892A4]"
+            highlight ? "bg-[#1440FF]/20 text-[#1440FF]" : "bg-[#1A2140] text-dim"
           )}
         >
           <Icon size={16} />
         </div>
       </div>
       <div>
-        <p className="text-3xl font-bold font-titillium text-white leading-none">{value}</p>
-        {sub && <p className="text-xs text-[#8892A4] mt-1 font-manrope">{sub}</p>}
+        <p className="text-3xl font-bold font-titillium text-ink leading-none">{value}</p>
+        {sub && <p className="text-xs text-dim mt-1 font-manrope">{sub}</p>}
       </div>
     </div>
   );

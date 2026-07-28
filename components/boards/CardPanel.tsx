@@ -250,38 +250,38 @@ export function CardPanel({
   }
 
   const input =
-    "w-full bg-[#0B0E17] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#8A8FA3]/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]";
-  const sideLabel = "text-[11px] font-bold tracking-[0.06em] text-[#6E7285] uppercase mb-2 block";
+    "w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]";
+  const sideLabel = "text-[11px] font-bold tracking-[0.06em] text-faint uppercase mb-2 block";
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-[1040px] h-full bg-[#0B0E17] border-l border-white/10 shadow-2xl flex flex-col animate-[roi-fade-up_0.2s_ease-out]">
+      <div className="relative w-full max-w-[1040px] h-full bg-canvas border-l border-line shadow-2xl flex flex-col animate-[roi-fade-up_0.2s_ease-out]">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-line flex-shrink-0">
           <div className="flex items-center gap-3">
-            <span className="text-[13px] font-mono text-[#8A8FA3]">{card?.code ?? "…"}</span>
+            <span className="text-[13px] font-mono text-dim">{card?.code ?? "…"}</span>
             {card?.parent && (
               <button
                 onClick={() => onOpenCard(card.parent!.id)}
-                className="text-[12px] text-[#A970FF] hover:underline flex items-center gap-1"
+                className="text-[12px] text-brand-soft hover:underline flex items-center gap-1"
               >
                 <GitBranch size={12} /> subtarefa de {card.parent.code}
               </button>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={deleteCard} className="text-[#8A8FA3] hover:text-red-400 transition-all" title="Excluir card">
+            <button onClick={deleteCard} className="text-dim hover:text-red-400 transition-all" title="Excluir card">
               <Trash2 size={17} />
             </button>
-            <button onClick={onClose} className="text-[#8A8FA3] hover:text-white transition-all">
+            <button onClick={onClose} className="text-dim hover:text-ink transition-all">
               <X size={19} />
             </button>
           </div>
         </div>
 
         {!card ? (
-          <div className="flex-1 flex items-center justify-center text-[#8A8FA3]">Carregando…</div>
+          <div className="flex-1 flex items-center justify-center text-dim">Carregando…</div>
         ) : (
           <div className="flex-1 flex overflow-hidden">
             {/* Main column */}
@@ -291,11 +291,11 @@ export function CardPanel({
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => title.trim() && title !== card.title && patch({ title: title.trim() })}
                 rows={1}
-                className="w-full bg-transparent text-[26px] font-extrabold text-white tracking-[-0.01em] resize-none focus:outline-none mb-7 leading-tight"
+                className="w-full bg-transparent text-[26px] font-extrabold text-ink tracking-[-0.01em] resize-none focus:outline-none mb-7 leading-tight"
               />
 
               {/* Descrição */}
-              <p className="text-[13px] font-semibold text-[#8A8FA3] mb-2">Descrição</p>
+              <p className="text-[13px] font-semibold text-dim mb-2">Descrição</p>
               <textarea
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
@@ -311,11 +311,11 @@ export function CardPanel({
               <div className="space-y-1.5 mb-3">
                 {card.checklist.map((it) => (
                   <div key={it.id} className="flex items-center gap-2.5 group">
-                    <button onClick={() => toggleChecklist(it.id, !it.done)} className="text-[#8A8FA3] hover:text-white">
+                    <button onClick={() => toggleChecklist(it.id, !it.done)} className="text-dim hover:text-ink">
                       {it.done ? <CheckSquare size={16} className="text-[#22C55E]" /> : <Square size={16} />}
                     </button>
-                    <span className={`text-[14px] flex-1 ${it.done ? "line-through text-[#6E7285]" : "text-white"}`}>{it.text}</span>
-                    <button onClick={() => delChecklist(it.id)} className="text-[#4B4F63] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                    <span className={`text-[14px] flex-1 ${it.done ? "line-through text-faint" : "text-ink"}`}>{it.text}</span>
+                    <button onClick={() => delChecklist(it.id)} className="text-faint hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -338,13 +338,13 @@ export function CardPanel({
               <SectionTitle icon={<Paperclip size={15} />} title="Anexos" />
               <div className="space-y-2 mb-3">
                 {card.attachments.map((a) => (
-                  <div key={a.id} className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2 group">
-                    <Paperclip size={14} className="text-[#8A8FA3]" />
-                    <a href={a.dataUrl} download={a.filename} className="text-[14px] text-white hover:text-[#A970FF] flex-1 truncate">
+                  <div key={a.id} className="flex items-center gap-3 bg-surface border border-line rounded-lg px-3 py-2 group">
+                    <Paperclip size={14} className="text-dim" />
+                    <a href={a.dataUrl} download={a.filename} className="text-[14px] text-ink hover:text-brand-soft flex-1 truncate">
                       {a.filename}
                     </a>
-                    <span className="text-[12px] text-[#6E7285]">{humanSize(a.size)}</span>
-                    <button onClick={() => delAttachment(a.id)} className="text-[#4B4F63] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                    <span className="text-[12px] text-faint">{humanSize(a.size)}</span>
+                    <button onClick={() => delAttachment(a.id)} className="text-faint hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -352,7 +352,7 @@ export function CardPanel({
               </div>
               <button
                 onClick={() => fileRef.current?.click()}
-                className="w-full border border-dashed border-white/[0.14] rounded-lg py-4 text-[13.5px] text-[#8A8FA3] hover:text-white hover:border-white/25 transition-all flex items-center justify-center gap-2 mb-8"
+                className="w-full border border-dashed border-line-strong rounded-lg py-4 text-[13.5px] text-dim hover:text-ink hover:border-line-strong transition-all flex items-center justify-center gap-2 mb-8"
               >
                 <Paperclip size={14} /> Anexar arquivo (máx. 1,5 MB)
               </button>
@@ -361,16 +361,16 @@ export function CardPanel({
               {/* Subtarefas */}
               <SectionTitle icon={<GitBranch size={15} />} title="Subtarefas" />
               <div className="space-y-1.5 mb-3">
-                {card.subtasks.length === 0 && <p className="text-[13px] text-[#6E7285]">Nenhuma subtarefa.</p>}
+                {card.subtasks.length === 0 && <p className="text-[13px] text-faint">Nenhuma subtarefa.</p>}
                 {card.subtasks.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => onOpenCard(s.id)}
-                    className="w-full flex items-center gap-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2 hover:border-white/[0.16] transition-all text-left"
+                    className="w-full flex items-center gap-2.5 bg-surface border border-line rounded-lg px-3 py-2 hover:border-line-strong transition-all text-left"
                   >
-                    <span className="text-[11px] font-semibold rounded px-1.5 py-0.5 bg-white/[0.06] text-[#8A8FA3]">{STATUS_LABEL[s.status]}</span>
-                    <span className="text-[14px] text-white flex-1 truncate">{s.title}</span>
-                    <span className="text-[11px] font-mono text-[#4B4F63]">{s.code}</span>
+                    <span className="text-[11px] font-semibold rounded px-1.5 py-0.5 bg-surface-hover text-dim">{STATUS_LABEL[s.status]}</span>
+                    <span className="text-[14px] text-ink flex-1 truncate">{s.title}</span>
+                    <span className="text-[11px] font-mono text-faint">{s.code}</span>
                   </button>
                 ))}
               </div>
@@ -390,15 +390,15 @@ export function CardPanel({
               {/* Relações */}
               <SectionTitle icon={<Link2 size={15} />} title="Relações" />
               <div className="space-y-1.5 mb-3">
-                {card.relations.length === 0 && <p className="text-[13px] text-[#6E7285]">Nenhuma relação.</p>}
+                {card.relations.length === 0 && <p className="text-[13px] text-faint">Nenhuma relação.</p>}
                 {card.relations.map((r) => (
-                  <div key={r.id} className="flex items-center gap-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2 group">
-                    <span className="text-[11px] font-semibold text-[#A970FF] bg-[#7C1EFB]/15 rounded px-1.5 py-0.5 whitespace-nowrap">{r.type}</span>
-                    <button onClick={() => onOpenCard(r.card.id)} className="text-[14px] text-white hover:text-[#A970FF] flex-1 truncate text-left">
+                  <div key={r.id} className="flex items-center gap-2.5 bg-surface border border-line rounded-lg px-3 py-2 group">
+                    <span className="text-[11px] font-semibold text-brand-soft bg-[#7C1EFB]/15 rounded px-1.5 py-0.5 whitespace-nowrap">{r.type}</span>
+                    <button onClick={() => onOpenCard(r.card.id)} className="text-[14px] text-ink hover:text-brand-soft flex-1 truncate text-left">
                       {r.card.title}
                     </button>
-                    <span className="text-[11px] font-mono text-[#4B4F63]">{r.card.code}</span>
-                    <button onClick={() => delRelation(r.id)} className="text-[#4B4F63] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                    <span className="text-[11px] font-mono text-faint">{r.card.code}</span>
+                    <button onClick={() => delRelation(r.id)} className="text-faint hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -407,13 +407,13 @@ export function CardPanel({
               <div className="flex gap-2 mb-8">
                 <select value={relType} onChange={(e) => setRelType(e.target.value)} className={`${input} max-w-[150px]`}>
                   {RELATION_OPTIONS.map((o) => (
-                    <option key={o.key} value={o.key} className="bg-[#12141F]">{o.label}</option>
+                    <option key={o.key} value={o.key} className="bg-raised">{o.label}</option>
                   ))}
                 </select>
                 <select value={relTo} onChange={(e) => setRelTo(e.target.value)} className={input}>
-                  <option value="" className="bg-[#12141F]">— escolher card —</option>
+                  <option value="" className="bg-raised">— escolher card —</option>
                   {boardCards.filter((c) => c.id !== cardId).map((c) => (
-                    <option key={c.id} value={c.id} className="bg-[#12141F]">{c.code} · {c.title}</option>
+                    <option key={c.id} value={c.id} className="bg-raised">{c.code} · {c.title}</option>
                   ))}
                 </select>
                 <button onClick={addRelation} disabled={!relTo} className="bg-[#5B21F0] hover:bg-[#4A1AD0] disabled:opacity-40 text-white px-3 rounded-lg transition-all">
@@ -422,16 +422,16 @@ export function CardPanel({
               </div>
 
               {/* Comentários / Timeline */}
-              <div className="flex items-center gap-5 border-b border-white/[0.08] mb-4">
+              <div className="flex items-center gap-5 border-b border-line mb-4">
                 <button
                   onClick={() => setTab("comments")}
-                  className={`pb-2.5 text-[15px] font-semibold border-b-2 -mb-px transition-all ${tab === "comments" ? "text-white border-[#7C1EFB]" : "text-[#8A8FA3] border-transparent"}`}
+                  className={`pb-2.5 text-[15px] font-semibold border-b-2 -mb-px transition-all ${tab === "comments" ? "text-ink border-[#7C1EFB]" : "text-dim border-transparent"}`}
                 >
                   <span className="flex items-center gap-1.5"><MessageSquare size={15} /> Comentários</span>
                 </button>
                 <button
                   onClick={() => setTab("timeline")}
-                  className={`pb-2.5 text-[15px] font-semibold border-b-2 -mb-px transition-all ${tab === "timeline" ? "text-white border-[#7C1EFB]" : "text-[#8A8FA3] border-transparent"}`}
+                  className={`pb-2.5 text-[15px] font-semibold border-b-2 -mb-px transition-all ${tab === "timeline" ? "text-ink border-[#7C1EFB]" : "text-dim border-transparent"}`}
                 >
                   <span className="flex items-center gap-1.5"><Clock size={15} /> Timeline</span>
                 </button>
@@ -453,7 +453,7 @@ export function CardPanel({
                     </button>
                   </div>
                   <div className="space-y-4">
-                    {card.comments.length === 0 && <p className="text-[13px] text-[#6E7285]">Sem comentários ainda.</p>}
+                    {card.comments.length === 0 && <p className="text-[13px] text-faint">Sem comentários ainda.</p>}
                     {card.comments.map((c) => (
                       <div key={c.id} className="flex gap-3">
                         <span className="w-8 h-8 rounded-full bg-[#5B21F0]/30 border border-[#7C1EFB]/40 flex items-center justify-center text-[11px] font-bold text-[#C9B8FF] flex-shrink-0">
@@ -461,10 +461,10 @@ export function CardPanel({
                         </span>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[13.5px] font-semibold text-white">{c.authorName}</span>
-                            <span className="text-[11.5px] text-[#6E7285]">{fmtDateTime(c.createdAt)}</span>
+                            <span className="text-[13.5px] font-semibold text-ink">{c.authorName}</span>
+                            <span className="text-[11.5px] text-faint">{fmtDateTime(c.createdAt)}</span>
                           </div>
-                          <p className="text-[14px] text-[#C7CBD9] whitespace-pre-wrap">{c.body}</p>
+                          <p className="text-[14px] text-ink-soft whitespace-pre-wrap">{c.body}</p>
                         </div>
                       </div>
                     ))}
@@ -472,13 +472,13 @@ export function CardPanel({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {card.activities.length === 0 && <p className="text-[13px] text-[#6E7285]">Sem atividades.</p>}
+                  {card.activities.length === 0 && <p className="text-[13px] text-faint">Sem atividades.</p>}
                   {card.activities.map((a) => (
                     <div key={a.id} className="flex items-center gap-3 text-[13.5px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#7C1EFB] flex-shrink-0" />
-                      <span className="text-white font-medium">{a.actorName}</span>
-                      <span className="text-[#8A8FA3]">{a.detail ?? a.type}</span>
-                      <span className="text-[11.5px] text-[#4B4F63] ml-auto">{fmtDateTime(a.createdAt)}</span>
+                      <span className="text-ink font-medium">{a.actorName}</span>
+                      <span className="text-dim">{a.detail ?? a.type}</span>
+                      <span className="text-[11.5px] text-faint ml-auto">{fmtDateTime(a.createdAt)}</span>
                     </div>
                   ))}
                 </div>
@@ -486,7 +486,7 @@ export function CardPanel({
             </div>
 
             {/* Right sidebar */}
-            <div className="w-[300px] flex-shrink-0 border-l border-white/[0.08] overflow-y-auto px-6 py-7 space-y-6">
+            <div className="w-[300px] flex-shrink-0 border-l border-line overflow-y-auto px-6 py-7 space-y-6">
               <div>
                 <span className={sideLabel}>Responsável</span>
                 <select
@@ -494,9 +494,9 @@ export function CardPanel({
                   onChange={(e) => patch({ assigneeId: e.target.value || null })}
                   className={input}
                 >
-                  <option value="" className="bg-[#12141F]">— sem responsável —</option>
+                  <option value="" className="bg-raised">— sem responsável —</option>
                   {collaborators.map((c) => (
-                    <option key={c.id} value={c.id} className="bg-[#12141F]">{c.name}</option>
+                    <option key={c.id} value={c.id} className="bg-raised">{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -508,9 +508,9 @@ export function CardPanel({
                   onChange={(e) => patch({ coAssigneeId: e.target.value || null }, false)}
                   className={input}
                 >
-                  <option value="" className="bg-[#12141F]">— sem co-responsável —</option>
+                  <option value="" className="bg-raised">— sem co-responsável —</option>
                   {collaborators.map((c) => (
-                    <option key={c.id} value={c.id} className="bg-[#12141F]">{c.name}</option>
+                    <option key={c.id} value={c.id} className="bg-raised">{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -518,7 +518,7 @@ export function CardPanel({
               {card.createdByName && (
                 <div>
                   <span className={sideLabel}>Criado por</span>
-                  <p className="text-[14px] text-white">{card.createdByName}</p>
+                  <p className="text-[14px] text-ink">{card.createdByName}</p>
                 </div>
               )}
 
@@ -526,7 +526,7 @@ export function CardPanel({
                 <span className={sideLabel}>Status</span>
                 <select value={card.status} onChange={(e) => patch({ status: e.target.value })} className={input}>
                   {STATUS_OPTIONS.map((s) => (
-                    <option key={s.key} value={s.key} className="bg-[#12141F]">{s.label}</option>
+                    <option key={s.key} value={s.key} className="bg-raised">{s.label}</option>
                   ))}
                 </select>
               </div>
@@ -541,11 +541,11 @@ export function CardPanel({
                   }}
                   className={input}
                 >
-                  <option value="" className="bg-[#12141F]">— sem tag —</option>
+                  <option value="" className="bg-raised">— sem tag —</option>
                   {board.tags.map((t) => (
-                    <option key={t.id} value={t.id} className="bg-[#12141F]">{t.name}</option>
+                    <option key={t.id} value={t.id} className="bg-raised">{t.name}</option>
                   ))}
-                  <option value="__new" className="bg-[#12141F]">+ nova tag…</option>
+                  <option value="__new" className="bg-raised">+ nova tag…</option>
                 </select>
                 {showNewTag && (
                   <div className="flex gap-2 mt-2">
@@ -592,9 +592,9 @@ export function CardPanel({
 function SectionTitle({ icon, title, right }: { icon: React.ReactNode; title: string; right?: string }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <span className="text-[#A970FF]">{icon}</span>
-      <span className="text-[15px] font-bold text-white">{title}</span>
-      {right && <span className="text-[12px] text-[#6E7285]">{right}</span>}
+      <span className="text-brand-soft">{icon}</span>
+      <span className="text-[15px] font-bold text-ink">{title}</span>
+      {right && <span className="text-[12px] text-faint">{right}</span>}
     </div>
   );
 }
