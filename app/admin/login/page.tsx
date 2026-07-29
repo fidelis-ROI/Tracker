@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LogoMark } from "@/components/Logo";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -77,15 +78,9 @@ export default function LoginPage() {
         <ThemeToggle variant="icon" />
       </div>
       <div className="w-full max-w-[420px] flex flex-col items-center animate-[roi-fade-up_0.5s_ease-out]">
-        <div className="w-[72px] h-[72px] rounded-[20px] bg-brand flex items-center justify-center p-4 mb-[22px] shadow-[0_8px_30px_rgba(121,25,255,0.35)]">
-          <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-            <path d="M4 16L10 10L14 14L20 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M14 6H20V12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-
-        <h1 className="text-[30px] font-extrabold text-ink tracking-[-0.02em] text-center">ROI Tracker</h1>
-        <p className="text-[15px] text-dim mt-1.5 text-center">Central de Performance</p>
+        <LogoMark className="h-[60px] mb-6" />
+        <h1 className="font-manrope text-[40px] font-extrabold text-ink tracking-[-0.03em] leading-none text-center">ROI</h1>
+        <p className="text-[15px] text-dim mt-2 text-center">Central de Performance</p>
 
         <button
           type="button"

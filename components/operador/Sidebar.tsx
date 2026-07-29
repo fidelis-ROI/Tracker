@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { LayoutGrid, Users, User, KanbanSquare, LogOut, ChevronRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Logo } from "@/components/Logo";
 
 const navItems = [
   { href: "/operador/dashboard", label: "Carteira", icon: LayoutGrid },
@@ -20,17 +21,8 @@ export function OperadorSidebar() {
   return (
     <aside className="w-[280px] flex-shrink-0 bg-canvas border-r border-line flex flex-col justify-between h-screen sticky top-0 py-7 px-5">
       <div>
-        <div className="flex items-center gap-3 pb-5 mb-5 border-b border-line">
-          <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center flex-shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M4 16L10 10L14 14L20 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M14 6H20V12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-ink font-extrabold text-[17px] leading-tight tracking-[-0.01em]">ROI Tracker</p>
-            <p className="text-dim text-[12.5px] leading-tight">Portal do Operador</p>
-          </div>
+        <div className="pb-5 mb-5 border-b border-line">
+          <Logo subtitle="Portal do Operador" />
         </div>
 
         <nav className="flex flex-col gap-1.5">
