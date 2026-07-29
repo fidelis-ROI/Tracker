@@ -174,7 +174,7 @@ export default function FinanceiroPage() {
           {/* Evolução do MRR */}
           <SectionTitle hint="Últimos 12 meses">Evolução do MRR</SectionTitle>
           <div className="bg-surface border border-line rounded-2xl p-6 mb-9 shadow-[0_1px_3px_rgba(15,20,40,0.05)]">
-            <div className="flex items-end gap-3 h-48">
+            <div className="flex gap-3 h-48">
               {data.mrrHistory.map((m, i) => {
                 const isLast = i === data.mrrHistory.length - 1;
                 const heightPct = Math.max((m.value / maxMrr) * 100, 3);
