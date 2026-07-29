@@ -239,19 +239,19 @@ export default function DashboardPage() {
             <p className="text-base text-dim">Nenhuma resposta encontrada para este período.</p>
           </div>
         ) : (
-          <div className="bg-surface border border-line rounded-[14px] overflow-hidden">
+          <div className="bg-surface border border-line rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(15,20,40,0.05)]">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-line">
+                  <tr className="border-b border-line bg-surface-hover/40">
                     {["Cliente","Operador","Aquisição","Entrega","Feedback","Data"].map(h => (
                       <th key={h} className="text-left px-5 py-3 text-xs font-bold text-dim uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {responses.map((r, i) => (
-                    <tr key={r.id} className={`border-b border-line ${i % 2 === 1 ? "bg-surface" : ""}`}>
+                  {responses.map((r) => (
+                    <tr key={r.id} className="border-b border-line last:border-0 hover:bg-surface-hover/40 transition-colors">
                       <td className="px-5 py-3 text-ink font-medium">{r.client.name}</td>
                       <td className="px-5 py-3 text-dim text-xs">{r.trafego?.name ?? "—"}</td>
                       <td className="px-5 py-3">
@@ -293,8 +293,8 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-2">
             {collabStats.map((c, i) => (
-              <div key={c.id} className="bg-surface border border-line rounded-[14px] overflow-hidden">
-                <button onClick={() => toggleCollab(c.id)} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-surface transition-all text-left">
+              <div key={c.id} className="bg-surface border border-line rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(15,20,40,0.05)]">
+                <button onClick={() => toggleCollab(c.id)} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-surface-hover/50 transition-all text-left">
                   <span className="text-dim font-bold text-sm w-6">#{i + 1}</span>
                   <div className="flex-1">
                     <p className="text-ink font-semibold text-sm">{c.name}</p>
@@ -327,25 +327,22 @@ export default function DashboardPage() {
 }
 
 function BrandCard({ label, accent, nps, ticket, count }: { label: string; accent: "purple" | "blue"; nps: number | null; ticket: number | null; count: number }) {
-  const colors = accent === "purple"
-    ? { border: "border-[#7C1EFB]/30", dot: "bg-[#A970FF]", text: "text-brand-soft" }
-    : { border: "border-[#1440FF]/30", dot: "bg-[#5B8DFF]", text: "text-[#5B8DFF]" };
-
+  const color = accent === "purple" ? "#7C1EFB" : "#1440FF";
   return (
-    <div className={`bg-surface border ${colors.border} rounded-[14px] p-[22px]`}>
-      <div className="flex items-center gap-2 mb-5">
-        <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
-        <span className={`text-sm font-bold ${colors.text}`}>{label}</span>
-        <span className="text-xs text-dim ml-auto">{count} cliente{count !== 1 ? "s" : ""}</span>
+    <div className="bg-surface border border-line rounded-2xl p-6 shadow-[0_1px_3px_rgba(15,20,40,0.05)] hover:border-line-strong transition-all">
+      <div className="flex items-center gap-2.5 mb-5">
+        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
+        <span className="text-[15px] font-bold text-ink">{label}</span>
+        <span className="text-[12.5px] text-faint ml-auto">{count} cliente{count !== 1 ? "s" : ""}</span>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs font-bold tracking-[0.06em] text-dim mb-1.5">NPS MÉDIO</p>
-          <p className="text-2xl font-extrabold text-ink">{nps !== null ? `${nps > 0 ? "+" : ""}${nps}` : "—"}</p>
+          <p className="text-[11px] font-bold tracking-[0.06em] text-dim mb-1.5">NPS MÉDIO</p>
+          <p className="text-[26px] font-extrabold text-ink leading-none">{nps !== null ? `${nps > 0 ? "+" : ""}${nps}` : "—"}</p>
         </div>
         <div>
-          <p className="text-xs font-bold tracking-[0.06em] text-dim mb-1.5">TICKET MÉDIO</p>
-          <p className="text-2xl font-extrabold text-ink">
+          <p className="text-[11px] font-bold tracking-[0.06em] text-dim mb-1.5">TICKET MÉDIO</p>
+          <p className="text-[26px] font-extrabold text-ink leading-none">
             {ticket !== null ? `R$ ${ticket.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "—"}
           </p>
         </div>
@@ -356,15 +353,15 @@ function BrandCard({ label, accent, nps, ticket, count }: { label: string; accen
 
 function MetricTile({ label, value, icon: Icon, sub }: { label: string; value: string | number; icon: React.ElementType; sub: string }) {
   return (
-    <div className="bg-surface border border-line rounded-[14px] p-[22px]">
-      <div className="flex items-start justify-between">
-        <span className="text-xs font-bold tracking-[0.06em] text-dim">{label}</span>
-        <div className="w-8 h-8 rounded-lg bg-[#7C1EFB]/25 flex items-center justify-center flex-shrink-0">
-          <Icon size={16} className="text-brand-soft" />
-        </div>
+    <div className="bg-surface border border-line rounded-2xl p-5 shadow-[0_1px_3px_rgba(15,20,40,0.05)] hover:border-line-strong transition-all">
+      <div className="flex items-start justify-between mb-3.5">
+        <span className="text-[11px] font-bold tracking-[0.06em] text-dim">{label}</span>
+        <span className="w-8 h-8 rounded-lg bg-brand-tint text-brand flex items-center justify-center flex-shrink-0">
+          <Icon size={16} />
+        </span>
       </div>
-      <p className="text-[32px] font-extrabold text-ink leading-none my-[18px]">{value}</p>
-      <p className="text-[13.5px] text-dim">{sub}</p>
+      <p className="text-[30px] font-extrabold text-ink leading-none tracking-[-0.01em]">{value}</p>
+      <p className="text-[12.5px] text-faint mt-2.5">{sub}</p>
     </div>
   );
 }
