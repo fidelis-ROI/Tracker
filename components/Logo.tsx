@@ -1,42 +1,38 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Marca ROI (símbolo roxo). Reconstruído em SVG a partir do logo enviado —
- * barra superior + flâmula apontada + quadrado inferior. Sempre roxo (funciona
- * nos dois temas).
+ * Logo oficial ROI. Duas artes (tema claro/escuro) trocadas por CSS conforme
+ * a classe .dark no <html> — sem flash de hidratação.
+ * `roi-logo-light.png` = wordmark escuro (fundo claro).
+ * `roi-logo-dark.png`  = wordmark branco (fundo escuro).
+ * Imagem simples (não next/image) — é um asset pequeno e evita depender do
+ * otimizador de imagens em produção.
  */
-export function LogoMark({ className }: { className?: string }) {
+export function LogoImage({ className, imgClassName }: { className?: string; imgClassName?: string }) {
   return (
-    <svg viewBox="0 0 29 40" fill="none" className={cn("w-auto", className)} aria-hidden="true">
-      <rect x="0" y="0" width="29" height="11" rx="3" fill="#7C1EFB" />
-      <path d="M17.5 14.5 H29 V40 L17.5 27 Z" fill="#7C1EFB" />
-      <rect x="0" y="28.5" width="11" height="11" rx="3" fill="#7C1EFB" />
-    </svg>
+    <span className={cn("inline-flex items-center", className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/roi-logo-light.png" alt="ROI" className={cn("w-auto dark:hidden", imgClassName)} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/roi-logo-dark.png" alt="ROI" className={cn("w-auto hidden dark:block", imgClassName)} />
+    </span>
   );
 }
 
-/**
- * Logo completa: símbolo + wordmark "ROI" (herda a cor do texto, então fica
- * preto no tema claro e branco no escuro) + subtítulo opcional.
- */
+/** Logo + subtítulo (usado nas sidebars). */
 export function Logo({
   subtitle,
-  markClassName = "h-9",
-  wordClassName = "text-[23px]",
+  imgClassName = "h-8",
   className,
 }: {
   subtitle?: string;
-  markClassName?: string;
-  wordClassName?: string;
+  imgClassName?: string;
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      <LogoMark className={cn("flex-shrink-0", markClassName)} />
-      <div className="leading-none">
-        <span className={cn("block font-manrope font-extrabold text-ink tracking-[-0.03em]", wordClassName)}>ROI</span>
-        {subtitle && <span className="block text-dim text-[12.5px] mt-1 leading-tight">{subtitle}</span>}
-      </div>
+    <div className={cn("flex flex-col items-start gap-2", className)}>
+      <LogoImage imgClassName={imgClassName} />
+      {subtitle && <span className="text-dim text-[12.5px] leading-tight">{subtitle}</span>}
     </div>
   );
 }

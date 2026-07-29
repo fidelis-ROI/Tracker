@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LogoMark } from "@/components/Logo";
+import { LogoImage } from "@/components/Logo";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -78,9 +78,8 @@ export default function LoginPage() {
         <ThemeToggle variant="icon" />
       </div>
       <div className="w-full max-w-[420px] flex flex-col items-center animate-[roi-fade-up_0.5s_ease-out]">
-        <LogoMark className="h-[60px] mb-6" />
-        <h1 className="font-manrope text-[40px] font-extrabold text-ink tracking-[-0.03em] leading-none text-center">ROI</h1>
-        <p className="text-[15px] text-dim mt-2 text-center">Central de Performance</p>
+        <LogoImage imgClassName="h-16 mb-5" />
+        <p className="text-[15px] text-dim mt-1 text-center">Central de Performance</p>
 
         <button
           type="button"
