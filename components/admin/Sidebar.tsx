@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Users, UserCheck, DollarSign, KanbanSquare, LogOut, ChevronRight } from "lucide-react";
+import { LayoutGrid, Users, UserCheck, DollarSign, KanbanSquare, Sparkles, LogOut, ChevronRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
 
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/admin/tripulacao", label: "Operadores", icon: UserCheck },
   { href: "/admin/boards", label: "Boards", icon: KanbanSquare },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign, adminBadge: true },
+  { href: "/admin/roi", label: "ROI", icon: Sparkles },
 ];
 
 export function Sidebar() {

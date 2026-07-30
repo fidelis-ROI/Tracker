@@ -1,9 +1,86 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 import { NpsLabel } from "@/components/nps/NpsLabel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronDown, ChevronUp, ExternalLink, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Search, Lock } from "lucide-react";
+
+function ObservationBox({ clientId }: { clientId: string }) {
+  const [note, setNote] = useState("");
+  const [initial, setInitial] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/operador/client-notes?clientId=${clientId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!alive) return;
+        setNote(d.note || "");
+        setInitial(d.note || "");
+        setLoaded(true);
+      });
+    return () => { alive = false; };
+  }, [clientId]);
+
+  const dirty = note !== initial;
+
+  async function save() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/operador/client-notes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId, note }),
+      });
+      if (!res.ok) throw new Error();
+      const d = await res.json();
+      setInitial(d.note || "");
+      setNote(d.note || "");
+      toast.success("Observação salva.");
+    } catch {
+      toast.error("Erro ao salvar a observação.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 mb-2">
+        <Lock size={12} className="text-brand" />
+        <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase">Minhas observações</span>
+        <span className="text-[11px] text-faint">· privado, só você vê</span>
+      </div>
+      {loaded ? (
+        <>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Anote aqui informações internas sobre este cliente…"
+            rows={3}
+            className="w-full bg-canvas border border-line rounded-lg px-3 py-2.5 text-sm text-ink placeholder:text-faint resize-y focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+          />
+          {dirty && (
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={save}
+                disabled={saving}
+                className="bg-[#5B21F0] hover:bg-[#4A1AD0] disabled:opacity-60 text-white text-[13px] font-semibold px-4 py-1.5 rounded-lg transition-all"
+              >
+                {saving ? "Salvando…" : "Salvar observação"}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <Skeleton className="h-20 rounded-lg bg-surface" />
+      )}
+    </div>
+  );
+}
 
 interface NpsResponse {
   id: string;
@@ -170,6 +247,9 @@ export default function OperadorClientesPage() {
 
                   {isExpanded && (
                     <div className="border-t border-line">
+                      <div className="px-[26px] py-4 border-b border-line">
+                        <ObservationBox clientId={client.id} />
+                      </div>
                       {loadingResp ? (
                         <div className="p-4 space-y-2">
                           {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-10 rounded-lg bg-surface" />)}

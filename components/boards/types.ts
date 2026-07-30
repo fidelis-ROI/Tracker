@@ -3,6 +3,7 @@ export interface KanbanCard {
   code: string;
   title: string;
   status: string;
+  priority: string | null;
   order: number;
   dueDate: string | null;
   assignee: { id: string; name: string } | null;

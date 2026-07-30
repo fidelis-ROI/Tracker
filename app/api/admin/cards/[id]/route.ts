@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getActor, logActivity, STATUS_LABELS, BOARD_STATUSES, type BoardStatus } from "@/lib/boards";
+import { getActor, logActivity, STATUS_LABELS, BOARD_STATUSES, PRIORITIES, PRIORITY_LABELS, type BoardStatus, type Priority } from "@/lib/boards";
 import { z } from "zod";
 
 const updateSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   status: z.enum(BOARD_STATUSES).optional(),
+  priority: z.enum(PRIORITIES).nullable().optional(),
   order: z.number().optional(),
   assigneeId: z.string().nullable().optional(),
   coAssigneeId: z.string().nullable().optional(),
@@ -29,6 +30,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       title: true,
       description: true,
       status: true,
+      priority: true,
       startDate: true,
       dueDate: true,
       createdAt: true,
@@ -85,7 +87,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const before = await prisma.boardCard.findUnique({
       where: { id },
-      select: { status: true, assigneeId: true, dueDate: true, title: true, tagId: true },
+      select: { status: true, priority: true, assigneeId: true, dueDate: true, title: true, tagId: true },
     });
     if (!before) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
@@ -95,6 +97,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         title: data.title,
         description: data.description,
         status: data.status,
+        priority: data.priority,
         order: data.order,
         assigneeId: data.assigneeId,
         coAssigneeId: data.coAssigneeId,
@@ -122,6 +125,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
     if (data.title && data.title !== before.title) {
       await logActivity(id, actor.name, "title", "renomeou o card");
+    }
+    if (data.priority !== undefined && data.priority !== before.priority) {
+      await logActivity(id, actor.name, "priority", data.priority ? `definiu prioridade ${PRIORITY_LABELS[data.priority as Priority]}` : "removeu a prioridade");
     }
 
     return NextResponse.json(card);

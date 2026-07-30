@@ -26,12 +26,19 @@ const RELATION_OPTIONS = [
 
 const TAG_COLORS = ["#7C1EFB", "#22C55E", "#F59E0B", "#1440FF", "#EC4899", "#06B6D4", "#EF4444", "#8A8FA3"];
 
+const PRIORITY_OPTIONS: { key: string; label: string }[] = [
+  { key: "baixa", label: "Baixa" },
+  { key: "media", label: "Média" },
+  { key: "alta", label: "Alta" },
+];
+
 interface FullCard {
   id: string;
   code: string;
   title: string;
   description: string | null;
   status: string;
+  priority: string | null;
   startDate: string | null;
   dueDate: string | null;
   createdAt: string;
@@ -527,6 +534,20 @@ export function CardPanel({
                 <select value={card.status} onChange={(e) => patch({ status: e.target.value })} className={input}>
                   {STATUS_OPTIONS.map((s) => (
                     <option key={s.key} value={s.key} className="bg-raised">{s.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <span className={sideLabel}>Prioridade</span>
+                <select
+                  value={card.priority ?? ""}
+                  onChange={(e) => patch({ priority: e.target.value || null })}
+                  className={input}
+                >
+                  <option value="" className="bg-raised">— sem prioridade —</option>
+                  {PRIORITY_OPTIONS.map((p) => (
+                    <option key={p.key} value={p.key} className="bg-raised">{p.label}</option>
                   ))}
                 </select>
               </div>

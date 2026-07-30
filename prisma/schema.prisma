@@ -22,6 +22,7 @@ model Client {
   deletedAt     DateTime?        // Soft delete: preserva histórico de NPS/financeiro, oculto das listagens
   responses     NpsResponse[]
   operators     ClientOperator[]
+  observations  ClientObservation[]
 }
 
 model Collaborator {
@@ -40,6 +41,7 @@ model Collaborator {
   adminUser         AdminUser?
   cardsAssigned     BoardCard[]      @relation("CardAssignee")
   cardsCoAssigned   BoardCard[]      @relation("CardCoAssignee")
+  observations      ClientObservation[]
 }
 
 // Relação explícita: quais clientes cada operador gerencia
@@ -115,6 +117,7 @@ model BoardCard {
   description  String?
   // backlog | todo | doing | review | blocked | done
   status       String   @default("backlog")
+  priority     String?  // baixa | media | alta
   order        Float    @default(0) // ordenação dentro da coluna
 
   assigneeId   String?
@@ -201,4 +204,18 @@ model CardRelation {
   type   String    @default("relacionado")
 
   @@unique([fromId, toId, type])
+}
+
+// Observação privada do operador sobre um cliente (só o próprio operador vê).
+model ClientObservation {
+  id             String       @id @default(cuid())
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  collaboratorId String
+  collaborator   Collaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  note           String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([clientId, collaboratorId])
 }

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getActor, logActivity, nextCardCode, BOARD_STATUSES } from "@/lib/boards";
+import { getActor, logActivity, nextCardCode, BOARD_STATUSES, PRIORITIES } from "@/lib/boards";
 import { z } from "zod";
 
 const createSchema = z.object({
   boardId: z.string(),
   title: z.string().min(1),
   status: z.enum(BOARD_STATUSES).optional(),
+  priority: z.enum(PRIORITIES).nullable().optional(),
   parentId: z.string().nullable().optional(), // se for subtarefa
   assigneeId: z.string().nullable().optional(),
   tagId: z.string().nullable().optional(),
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
         code,
         title: data.title,
         status: data.status ?? "backlog",
+        priority: data.priority ?? null,
         order: (last?.order ?? 0) + 1000,
         parentId: data.parentId ?? null,
         assigneeId: data.assigneeId ?? null,

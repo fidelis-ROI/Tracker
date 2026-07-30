@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CardPanel } from "@/components/boards/CardPanel";
 import type { KanbanCard, BoardMeta, Collaborator } from "@/components/boards/types";
-import { ArrowLeft, Plus, MessageSquare, Paperclip, CheckSquare, GitBranch } from "lucide-react";
+import { ArrowLeft, Plus, MessageSquare, Paperclip, CheckSquare, GitBranch, ListFilter, X, AlertTriangle, ChevronDown } from "lucide-react";
 
 const COLUMNS: { key: string; label: string }[] = [
   { key: "backlog", label: "Backlog" },
@@ -26,8 +26,32 @@ const COLUMN_ACCENT: Record<string, string> = {
   done: "#22C55E",
 };
 
+const PRIORITY_META: Record<string, { label: string; color: string }> = {
+  baixa: { label: "Baixa", color: "#22C55E" },
+  media: { label: "Média", color: "#F59E0B" },
+  alta: { label: "Alta", color: "#EF4444" },
+};
+
 function initials(name: string) {
   return name.split(/\s+/).slice(0, 2).map((n) => n[0]?.toUpperCase() ?? "").join("");
+}
+
+function FilterSelect({ value, onChange, label, children }: { value: string; onChange: (v: string) => void; label: string; children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`appearance-none rounded-lg border pl-3 pr-7 py-1.5 text-[12.5px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] transition-colors ${
+          value ? "bg-brand-tint border-brand/40 text-brand font-semibold" : "bg-surface border-line text-dim hover:text-ink"
+        }`}
+      >
+        {children}
+      </select>
+      <ChevronDown size={13} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-faint" />
+    </div>
+  );
 }
 
 function dueLabel(due: string | null) {
@@ -50,6 +74,9 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  const [fAssignee, setFAssignee] = useState("");
+  const [fTag, setFTag] = useState("");
+  const [fPriority, setFPriority] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -111,8 +138,14 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
     }
   }
 
+  const filtersActive = !!(fAssignee || fTag || fPriority);
+  const matchesFilters = (c: KanbanCard) =>
+    (!fAssignee || c.assignee?.id === fAssignee) &&
+    (!fTag || c.tag?.id === fTag) &&
+    (!fPriority || c.priority === fPriority);
+
   const byColumn = (status: string) =>
-    cards.filter((c) => c.status === status).sort((a, b) => a.order - b.order);
+    cards.filter((c) => c.status === status && matchesFilters(c)).sort((a, b) => a.order - b.order);
 
   return (
     <div className="px-8 py-8 h-screen flex flex-col">
@@ -131,6 +164,38 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
             </div>
           </div>
         </div>
+
+        {!loading && (
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <ListFilter size={15} className="text-faint" />
+            <FilterSelect value={fAssignee} onChange={setFAssignee} label="Pessoa">
+              <option value="">Todas as pessoas</option>
+              {collaborators.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </FilterSelect>
+            <FilterSelect value={fTag} onChange={setFTag} label="Tag">
+              <option value="">Todas as tags</option>
+              {board?.tags.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </FilterSelect>
+            <FilterSelect value={fPriority} onChange={setFPriority} label="Prioridade">
+              <option value="">Todas as prioridades</option>
+              <option value="alta">Alta</option>
+              <option value="media">Média</option>
+              <option value="baixa">Baixa</option>
+            </FilterSelect>
+            {filtersActive && (
+              <button
+                onClick={() => { setFAssignee(""); setFTag(""); setFPriority(""); }}
+                className="flex items-center gap-1 text-[12.5px] text-dim hover:text-ink px-2 py-1.5 rounded-lg hover:bg-surface-hover transition-all"
+              >
+                <X size={13} /> Limpar
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -183,6 +248,8 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                 <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
                   {colCards.map((card) => {
                     const due = dueLabel(card.dueDate);
+                    const overdue = !!(due && due.overdue);
+                    const prio = card.priority ? PRIORITY_META[card.priority] : null;
                     return (
                       <div
                         key={card.id}
@@ -191,30 +258,44 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                         onDragEnd={() => setDragId(null)}
                         onClick={() => setOpenCardId(card.id)}
                         className={`bg-raised border border-line rounded-[11px] p-3.5 cursor-pointer hover:border-line-strong transition-all ${
-                          dragId === card.id ? "opacity-40" : ""
-                        }`}
+                          overdue ? "border-l-[3px] border-l-danger" : ""
+                        } ${dragId === card.id ? "opacity-40" : ""}`}
                       >
-                        {card.tag && (
-                          <span
-                            className="inline-block text-[11px] font-semibold rounded-full px-2.5 py-0.5 mb-2"
-                            style={{ backgroundColor: `${card.tag.color}22`, color: card.tag.color }}
-                          >
-                            {card.tag.name}
-                          </span>
+                        {(card.tag || prio) && (
+                          <div className="flex items-center flex-wrap gap-1.5 mb-2">
+                            {prio && (
+                              <span
+                                className="inline-flex items-center gap-1 text-[10.5px] font-bold rounded px-1.5 py-0.5"
+                                style={{ backgroundColor: `${prio.color}22`, color: prio.color }}
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: prio.color }} />
+                                {prio.label}
+                              </span>
+                            )}
+                            {card.tag && (
+                              <span
+                                className="inline-block text-[11px] font-semibold rounded-full px-2.5 py-0.5"
+                                style={{ backgroundColor: `${card.tag.color}22`, color: card.tag.color }}
+                              >
+                                {card.tag.name}
+                              </span>
+                            )}
+                          </div>
                         )}
                         <p className="text-[14.5px] font-semibold text-ink leading-snug mb-2.5">{card.title}</p>
 
                         {due && (
                           <span
-                            className={`inline-block text-[11px] font-semibold rounded-md px-2 py-0.5 mb-2 ${
-                              due.overdue
-                                ? "bg-red-500/15 text-red-400"
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold rounded-md px-2 py-0.5 mb-2 ${
+                              overdue
+                                ? "bg-danger/15 text-danger"
                                 : due.soon
-                                ? "bg-amber-500/15 text-amber-400"
+                                ? "bg-warning/15 text-warning"
                                 : "bg-surface-hover text-dim"
                             }`}
                           >
-                            {due.label}
+                            {overdue && <AlertTriangle size={11} />}
+                            {overdue ? `Atrasado · ${due.label.replace("Venc. ", "")}` : due.label}
                           </span>
                         )}
 

@@ -29,6 +29,14 @@ export const RELATION_TYPES = [
   "duplica",
 ] as const;
 
+export const PRIORITIES = ["baixa", "media", "alta"] as const;
+export type Priority = (typeof PRIORITIES)[number];
+export const PRIORITY_LABELS: Record<Priority, string> = {
+  baixa: "Baixa",
+  media: "Média",
+  alta: "Alta",
+};
+
 /** Retorna a sessão + um "ator" (nome/email) para logs e autoria. */
 export async function getActor() {
   const session = await getServerSession(authOptions);
