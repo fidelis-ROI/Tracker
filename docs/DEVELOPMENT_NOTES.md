@@ -268,3 +268,13 @@ Tokens semânticos em CSS vars, com valores para `.dark` (padrão, = `:root`) e 
 
 ### Migração (como foi feita)
 Conversão mecânica (perl) mapeando as ~640 cores hardcoded → tokens, nos arquivos internos (admin/*, operador/*, boards, sidebars, MetricCard, PageHeader). Login convertido à mão (inputs + botão Google branco preservado). Depois um passe corrigindo `text-white`→`text-ink` que tinha sido trocado errado em botões roxos sólidos (restaurado pra `text-white`). Sem mudança de schema/banco.
+
+---
+
+## 11. Prioridade, filtros, atrasado, observações do operador, aba ROI (2026-07-29)
+
+- **Prioridade de card** (`BoardCard.priority` = baixa|media|alta): seletor no painel do card, chip colorido no tile (verde/âmbar/vermelho), incluída em create/update/GET + log na timeline. Migration `20260729000000`.
+- **Filtros no board** (`components/boards/BoardView.tsx`): Pessoa / Tag / Prioridade — filtragem client-side dos cards já carregados, com botão "Limpar".
+- **Faixa de atrasado**: card com `dueDate` no passado ganha barra vermelha à esquerda (`border-l-danger`) + badge "Atrasado · dd/mm".
+- **Observações privadas do operador** (`ClientObservation`, único por cliente+colaborador): textarea na tela `/operador/clientes` (dentro do card expandido do cliente), salva via `PUT /api/operador/client-notes` — só o próprio operador lê/escreve (keyed pelo `collaboratorId` da sessão). Nota vazia apaga a observação.
+- **Aba ROI** (`components/RoiHub.tsx`, rotas `/admin/roi` e `/operador/roi`, nav nas duas sidebars): "Sobre a ROI", Manual de marca, Logo (download dos PNGs reais em `public/`), Dados para NF. **Links e dados de NF são constantes editáveis no topo de `RoiHub.tsx`** (`BRAND_MANUAL_URL`, `NF_DATA`) — deixados em branco pra preencher.
