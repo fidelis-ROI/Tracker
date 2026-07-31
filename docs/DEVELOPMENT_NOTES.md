@@ -278,3 +278,13 @@ Conversão mecânica (perl) mapeando as ~640 cores hardcoded → tokens, nos arq
 - **Faixa de atrasado**: card com `dueDate` no passado ganha barra vermelha à esquerda (`border-l-danger`) + badge "Atrasado · dd/mm".
 - **Observações privadas do operador** (`ClientObservation`, único por cliente+colaborador): textarea na tela `/operador/clientes` (dentro do card expandido do cliente), salva via `PUT /api/operador/client-notes` — só o próprio operador lê/escreve (keyed pelo `collaboratorId` da sessão). Nota vazia apaga a observação.
 - **Aba ROI** (`components/RoiHub.tsx`, rotas `/admin/roi` e `/operador/roi`, nav nas duas sidebars): "Sobre a ROI", Manual de marca, Logo (download dos PNGs reais em `public/`), Dados para NF. **Links e dados de NF são constantes editáveis no topo de `RoiHub.tsx`** (`BRAND_MANUAL_URL`, `NF_DATA`) — deixados em branco pra preencher.
+
+---
+
+## 12. Links por cliente, dados pessoais + avatar, nível de acesso admin, links ROI (2026-07-31)
+
+Uma migration combinada `20260730000000_client_links_personal_data` (aplicada em prod via Console do Railway; `pg`/`prisma db execute` — Prisma v7 lê a URL de `prisma.config.ts`, **sem** `--schema`).
+
+- **Links por cliente** (`ClientLink`, N por cliente): admin gerencia no modal de cliente (`app/admin/clientes/page.tsx`, seção "Links úteis", linhas label+url dinâmicas, padrão replace-all no POST/PUT de `/api/admin/clients`). Operador vê os links (chips externos) no card expandido do cliente em `/operador/clientes` (incluídos em `/api/operador/portfolio`). Seed inicial: **Logo COPAUTO** e **Logo CONVEX** (ids fixos `seed_copauto_logo`/`seed_convex_logo`, inseridos por `INSERT ... SELECT ... WHERE name ILIKE` + `ON CONFLICT DO NOTHING`, idempotente).
+- **Dados pessoais + avatar** (campos em `Collaborator`: `fullName`, `birthDate`, `cpf`, `cnpj`, `avatarUrl`): a própria pessoa preenche no Painel Pessoal (`/operador/perfil`, card "Meus dados pessoais" + upload de avatar data-URL, cap 900 KB) via `PUT /api/operador/profile` (self-edit pelo `collaboratorId` da sessão). **Visível ao admin** em Operadores (`/admin/tripulacao`): avatar no header da linha + bloco "Dados pessoais" no expandido (só admin lê CPF/CNPJ/nascimento — retornados condicionalmente na API).
+- **Nível de acesso na aba Operadores**: seletor Operador/Administrador na seção de login do modal de operador — define `AdminUser.role` (`loginRole` em `/api/admin/collaborators` POST/PUT). Cria administradores. Badge "Admin" na linha de quem tem login admin. `Collaborator.role` (gestor/designer) continua separado do nível de acesso.
