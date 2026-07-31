@@ -14,6 +14,7 @@ const updateSchema = z.object({
   contractDate: z.string().nullable().optional(),
   services: z.array(z.string()).nullable().optional(),
   operatorIds: z.array(z.string()).optional(), // IDs dos operadores atribuídos
+  links: z.array(z.object({ label: z.string().min(1), url: z.string().min(1) })).optional(),
 });
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -25,7 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   try {
     const body = await req.json();
-    const { operatorIds, services, contractDate, ...rest } = updateSchema.parse(body);
+    const { operatorIds, links, services, contractDate, ...rest } = updateSchema.parse(body);
 
     const client = await prisma.client.update({
       where: { id },
@@ -42,6 +43,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       if (operatorIds.length > 0) {
         await prisma.clientOperator.createMany({
           data: operatorIds.map((collaboratorId) => ({ clientId: id, collaboratorId })),
+        });
+      }
+    }
+
+    // Atualiza links do cliente (substitui todos)
+    if (links !== undefined) {
+      await prisma.clientLink.deleteMany({ where: { clientId: id } });
+      if (links.length > 0) {
+        await prisma.clientLink.createMany({
+          data: links.map((l, i) => ({ clientId: id, label: l.label, url: l.url, order: i })),
         });
       }
     }

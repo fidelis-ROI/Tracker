@@ -91,11 +91,13 @@ interface NpsResponse {
   submittedAt: string;
 }
 
+interface ClientLink { id: string; label: string; url: string; }
 interface ClientNps {
   id: string;
   name: string;
   slug: string;
   active: boolean;
+  links: ClientLink[];
   responses: NpsResponse[];
 }
 
@@ -247,6 +249,24 @@ export default function OperadorClientesPage() {
 
                   {isExpanded && (
                     <div className="border-t border-line">
+                      {client.links.length > 0 && (
+                        <div className="px-[26px] py-4 border-b border-line">
+                          <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase block mb-2.5">Links do cliente</span>
+                          <div className="flex flex-wrap gap-2">
+                            {client.links.map((l) => (
+                              <a
+                                key={l.id}
+                                href={l.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 bg-surface-hover hover:bg-surface border border-line text-ink text-[13px] font-medium px-3 py-1.5 rounded-lg transition-all"
+                              >
+                                <ExternalLink size={13} className="text-brand" /> {l.label}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="px-[26px] py-4 border-b border-line">
                         <ObservationBox clientId={client.id} />
                       </div>

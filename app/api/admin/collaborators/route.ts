@@ -15,6 +15,7 @@ const createSchema = z.object({
   createLogin: z.boolean().optional(),
   loginEmail: z.string().email().optional(),
   loginPassword: z.string().min(6).optional(),
+  loginRole: z.enum(["operator", "admin"]).optional(),
   clientIds: z.array(z.string()).optional(),
 });
 
@@ -35,7 +36,8 @@ export async function GET(req: NextRequest) {
       role: true,
       active: true,
       hireDate: true,
-      ...(isAdmin ? { salary: true, variable: true } : {}),
+      avatarUrl: true,
+      ...(isAdmin ? { salary: true, variable: true, fullName: true, birthDate: true, cpf: true, cnpj: true } : {}),
       adminUser: { select: { email: true, role: true } },
       clientPortfolio: {
         select: { client: { select: { id: true, name: true, slug: true } } },
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest) {
     if (data.createLogin && data.loginEmail && data.loginPassword) {
       const hash = await bcrypt.hash(data.loginPassword, 12);
       await prisma.adminUser.create({
-        data: { email: data.loginEmail.toLowerCase().trim(), password: hash, role: "operator", collaboratorId: collab.id },
+        data: { email: data.loginEmail.toLowerCase().trim(), password: hash, role: data.loginRole ?? "operator", collaboratorId: collab.id },
       });
     }
 

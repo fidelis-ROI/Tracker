@@ -20,7 +20,12 @@ interface Collaborator {
   salary?: number | null;
   variable?: number | null;
   hireDate?: string | null;
-  adminUser?: { email: string } | null;
+  avatarUrl?: string | null;
+  fullName?: string | null;
+  birthDate?: string | null;
+  cpf?: string | null;
+  cnpj?: string | null;
+  adminUser?: { email: string; role?: string } | null;
   clientPortfolio?: { client: { id: string; name: string } }[];
 }
 
@@ -42,6 +47,7 @@ const schema = z.object({
   createLogin: z.boolean().optional(),
   loginEmail: z.string().optional(),
   loginPassword: z.string().optional(),
+  loginRole: z.enum(["operator", "admin"]).optional(),
   clientIds: z.array(z.string()).optional(),
 });
 
@@ -78,6 +84,7 @@ export default function OperadoresPage() {
   const activeValue = watch("active");
   const createLoginValue = watch("createLogin");
   const roleValue = watch("role");
+  const loginRoleValue = watch("loginRole");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -116,7 +123,7 @@ export default function OperadoresPage() {
   function openCreate() {
     setEditing(null);
     setSelectedClients([]);
-    reset({ name: "", role: "gestor_trafego", active: true, salary: "", variable: "", hireDate: "", createLogin: false, loginEmail: "", loginPassword: "" });
+    reset({ name: "", role: "gestor_trafego", active: true, salary: "", variable: "", hireDate: "", createLogin: false, loginEmail: "", loginPassword: "", loginRole: "operator" });
     setOpen(true);
   }
 
@@ -133,6 +140,7 @@ export default function OperadoresPage() {
       createLogin: false,
       loginEmail: c.adminUser?.email ?? "",
       loginPassword: "",
+      loginRole: (c.adminUser?.role as "operator" | "admin") ?? "operator",
     });
     setOpen(true);
   }
@@ -163,9 +171,14 @@ export default function OperadoresPage() {
           payload.createLogin = true;
           payload.loginEmail = data.loginEmail;
           payload.loginPassword = data.loginPassword;
+          payload.loginRole = data.loginRole ?? "operator";
         } else if (editing && data.loginEmail) {
           payload.loginEmail = data.loginEmail;
           if (data.loginPassword) payload.loginPassword = data.loginPassword;
+          payload.loginRole = data.loginRole ?? "operator";
+        } else if (editing && editing.adminUser && data.loginRole) {
+          // Alterar apenas o nível de acesso de um login existente
+          payload.loginRole = data.loginRole;
         }
       }
 
@@ -216,12 +229,27 @@ export default function OperadoresPage() {
             {items.map((c) => (
               <div key={c.id} className="bg-surface border border-line rounded-[14px] overflow-hidden">
                 <div className="flex items-center justify-between px-[26px] py-6">
-                  <div>
-                    <p className="text-[18px] font-bold text-ink mb-1">{c.name}</p>
-                    <p className="text-sm text-dim">
-                      {c.role === "gestor_trafego" ? "Gestor de Tráfego" : "Designer"}
-                      {c.hireDate && <><span className="mx-1">·</span>{daysAtCompany(c.hireDate)}</>}
-                    </p>
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-brand-tint border border-brand/30 overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {c.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-brand-soft font-bold text-sm">{c.name.slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-[18px] font-bold text-ink">{c.name}</p>
+                        {c.adminUser?.role === "admin" && (
+                          <span className="inline-block rounded-full px-2 py-0.5 text-[11px] font-bold bg-[#5B21F0]/[0.22] text-brand-soft">Admin</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-dim">
+                        {c.role === "gestor_trafego" ? "Gestor de Tráfego" : "Designer"}
+                        {c.hireDate && <><span className="mx-1">·</span>{daysAtCompany(c.hireDate)}</>}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-[22px]">
@@ -275,6 +303,27 @@ export default function OperadoresPage() {
                           <p className="text-ink text-sm">
                             {c.hireDate ? new Date(c.hireDate).toLocaleDateString("pt-BR") : "—"}
                           </p>
+                        </div>
+                        <div className="col-span-2 border-t border-line pt-3 mt-1">
+                          <p className="text-[11px] font-bold text-dim uppercase tracking-widest mb-2.5">Dados pessoais</p>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs text-dim mb-1">Nome completo</p>
+                              <p className="text-ink text-sm">{c.fullName || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-dim mb-1">Data de nascimento</p>
+                              <p className="text-ink text-sm">{c.birthDate ? new Date(c.birthDate).toLocaleDateString("pt-BR") : <span className="text-dim/40">—</span>}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-dim mb-1">CPF</p>
+                              <p className="text-ink text-sm">{c.cpf || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-dim mb-1">CNPJ</p>
+                              <p className="text-ink text-sm">{c.cnpj || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                          </div>
                         </div>
                       </>
                     )}
@@ -426,6 +475,24 @@ export default function OperadoresPage() {
                     <div className="space-y-3">
                       <p className="text-xs text-[#4ADE80]">✅ Acesso ativo: {editing.adminUser.email}</p>
                       <div>
+                        <label className="text-xs text-dim block mb-1.5">Nível de acesso</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {([["operator", "Operador"], ["admin", "Administrador"]] as const).map(([val, lbl]) => (
+                            <button
+                              type="button"
+                              key={val}
+                              onClick={() => setValue("loginRole", val)}
+                              className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${loginRoleValue === val ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
+                            >
+                              {lbl}
+                            </button>
+                          ))}
+                        </div>
+                        {loginRoleValue === "admin" && (
+                          <p className="text-[11px] text-brand-soft mt-1.5">Administradores têm acesso total ao painel.</p>
+                        )}
+                      </div>
+                      <div>
                         <label className="text-xs text-dim block mb-1">Novo email de login</label>
                         <input
                           {...register("loginEmail")}
@@ -469,6 +536,24 @@ export default function OperadoresPage() {
                               placeholder="••••••••"
                               className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                             />
+                          </div>
+                          <div>
+                            <label className="text-xs text-dim block mb-1.5">Nível de acesso</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {([["operator", "Operador"], ["admin", "Administrador"]] as const).map(([val, lbl]) => (
+                                <button
+                                  type="button"
+                                  key={val}
+                                  onClick={() => setValue("loginRole", val)}
+                                  className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${loginRoleValue === val ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
+                                >
+                                  {lbl}
+                                </button>
+                              ))}
+                            </div>
+                            {loginRoleValue === "admin" && (
+                              <p className="text-[11px] text-brand-soft mt-1.5">Administradores têm acesso total ao painel.</p>
+                            )}
                           </div>
                         </>
                       )}

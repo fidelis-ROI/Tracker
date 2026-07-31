@@ -2,17 +2,50 @@
 
 import { toast } from "sonner";
 import { LogoImage } from "@/components/Logo";
-import { BookOpen, Download, Copy, ExternalLink, ReceiptText, Info, Palette } from "lucide-react";
+import {
+  BookOpen, Download, Copy, ExternalLink, ReceiptText, Info, Palette,
+  FolderOpen, ClipboardCheck, KeyRound,
+} from "lucide-react";
 
 /* ------------------------------------------------------------------ *
  * Conteúdo editável — ajuste aqui os links e os dados da empresa.
  * ------------------------------------------------------------------ */
 const ABOUT =
   "A ROI é uma agência de performance focada em transformar dados em decisão. " +
-  "Este espaço reúne os materiais oficiais da marca e as informações que o time " +
+  "Este espaço reúne os materiais oficiais da marca e os acessos que o time " +
   "precisa no dia a dia.";
 
-const BRAND_MANUAL_URL = ""; // TODO: URL do manual de marca (deixe vazio para ocultar o botão)
+type LinkCard = { title: string; desc: string; url: string; icon: React.ElementType };
+
+const LINKS: LinkCard[] = [
+  {
+    title: "Manual de marca",
+    desc: "Diretrizes de uso do logo, cores, tipografia e tom de voz.",
+    url: "https://drive.google.com/drive/folders/1-J6dvEBKyfZvgrD-2gj8skrVvZJyoU8l?usp=sharing",
+    icon: BookOpen,
+  },
+  {
+    title: "Manual de boas práticas",
+    desc: "Padrões e recomendações internas do time ROI.",
+    url: "https://drive.google.com/drive/folders/1W9Rds_V2iG2tcr6Xllh2lMvXvDRkD11N?usp=sharing",
+    icon: ClipboardCheck,
+  },
+  {
+    title: "Drive ROI Design",
+    desc: "Pasta com todos os materiais de design da ROI.",
+    url: "https://drive.google.com/drive/folders/1lJ6ViEmXV-SKQBY7Z2YXseX5vz58L4Oc?usp=sharing",
+    icon: FolderOpen,
+  },
+  {
+    title: "Logins e acessos",
+    desc: "Central de acessos e credenciais do time (Notion).",
+    url: "https://app.notion.com/p/roipartners/Acessos-Geral-30c5114aa812801d99abd7a2e3e9154c",
+    icon: KeyRound,
+  },
+];
+
+// Pasta oficial com os arquivos de logo no Drive.
+const LOGO_DRIVE_URL = "https://drive.google.com/drive/folders/1GP8D3xf0pW2XPBE3TZZt0HKXaRau3m0y?usp=sharing";
 
 // Dados para emissão de nota fiscal. Preencha com os dados reais.
 const NF_DATA: { label: string; value: string }[] = [
@@ -63,52 +96,57 @@ export function RoiHub() {
 
       <h2 className="text-[19px] font-extrabold text-ink tracking-[-0.01em] mb-4 mt-8">Links úteis</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Manual de marca */}
-        <Section>
-          <div className="flex items-center gap-2.5 mb-3">
-            <span className="w-9 h-9 rounded-lg bg-brand-tint text-brand flex items-center justify-center">
-              <BookOpen size={18} />
-            </span>
-            <h3 className="text-[16px] font-bold text-ink">Manual de marca</h3>
-          </div>
-          <p className="text-[13.5px] text-dim mb-4">Diretrizes de uso do logo, cores, tipografia e tom de voz.</p>
-          {BRAND_MANUAL_URL ? (
+        {LINKS.map((l) => (
+          <Section key={l.title}>
+            <div className="flex items-center gap-2.5 mb-3">
+              <span className="w-9 h-9 rounded-lg bg-brand-tint text-brand flex items-center justify-center">
+                <l.icon size={18} />
+              </span>
+              <h3 className="text-[16px] font-bold text-ink">{l.title}</h3>
+            </div>
+            <p className="text-[13.5px] text-dim mb-4">{l.desc}</p>
             <a
-              href={BRAND_MANUAL_URL}
+              href={l.url}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 bg-[#5B21F0] hover:bg-[#4A1AD0] text-white text-[14px] font-semibold px-4 py-2 rounded-lg transition-all"
             >
-              <ExternalLink size={15} /> Abrir manual
+              <ExternalLink size={15} /> Abrir
             </a>
-          ) : (
-            <p className="text-[12.5px] text-faint italic">Link ainda não configurado.</p>
-          )}
-        </Section>
+          </Section>
+        ))}
 
-        {/* Logo */}
-        <Section>
+        {/* Logo — download dos PNGs + pasta no Drive */}
+        <Section className="md:col-span-2">
           <div className="flex items-center gap-2.5 mb-3">
             <span className="w-9 h-9 rounded-lg bg-brand-tint text-brand flex items-center justify-center">
               <Palette size={18} />
             </span>
             <h3 className="text-[16px] font-bold text-ink">Logo</h3>
           </div>
-          <p className="text-[13.5px] text-dim mb-4">Arquivos oficiais em PNG (fundo transparente).</p>
+          <p className="text-[13.5px] text-dim mb-4">Arquivos oficiais em PNG (fundo transparente) ou a pasta completa no Drive.</p>
           <div className="flex flex-wrap gap-2.5">
             <a
               href="/roi-logo-light.png"
               download="ROI-logo-tema-claro.png"
               className="inline-flex items-center gap-2 bg-surface-hover hover:bg-surface border border-line text-ink text-[13.5px] font-semibold px-3.5 py-2 rounded-lg transition-all"
             >
-              <Download size={15} /> Versão fundo claro
+              <Download size={15} /> PNG · fundo claro
             </a>
             <a
               href="/roi-logo-dark.png"
               download="ROI-logo-tema-escuro.png"
               className="inline-flex items-center gap-2 bg-surface-hover hover:bg-surface border border-line text-ink text-[13.5px] font-semibold px-3.5 py-2 rounded-lg transition-all"
             >
-              <Download size={15} /> Versão fundo escuro
+              <Download size={15} /> PNG · fundo escuro
+            </a>
+            <a
+              href={LOGO_DRIVE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 bg-surface-hover hover:bg-surface border border-line text-ink text-[13.5px] font-semibold px-3.5 py-2 rounded-lg transition-all"
+            >
+              <ExternalLink size={15} /> Todos os logos (Drive)
             </a>
           </div>
         </Section>
@@ -129,11 +167,7 @@ export function RoiHub() {
                     <p className="text-[11px] font-bold tracking-[0.05em] text-faint uppercase">{f.label}</p>
                     <p className="text-[14px] text-ink truncate">{f.value}</p>
                   </div>
-                  <button
-                    onClick={() => copy(f.value)}
-                    className="text-dim hover:text-ink flex-shrink-0 transition-all"
-                    title="Copiar"
-                  >
+                  <button onClick={() => copy(f.value)} className="text-dim hover:text-ink flex-shrink-0 transition-all" title="Copiar">
                     <Copy size={15} />
                   </button>
                 </div>
@@ -141,7 +175,7 @@ export function RoiHub() {
             </div>
           ) : (
             <p className="text-[13px] text-faint italic">
-              Dados ainda não preenchidos. Um admin pode configurá-los no arquivo do painel.
+              Dados ainda não preenchidos. Configure em <span className="font-mono not-italic">components/RoiHub.tsx</span> (constante <span className="font-mono not-italic">NF_DATA</span>).
             </p>
           )}
         </Section>

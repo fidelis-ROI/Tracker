@@ -15,6 +15,7 @@ const updateSchema = z.object({
   // Gerenciar login
   loginEmail: z.string().email().optional(),
   loginPassword: z.string().min(6).optional(),
+  loginRole: z.enum(["operator", "admin"]).optional(),
   clientIds: z.array(z.string()).optional(), // Carteira de clientes
 });
 
@@ -38,6 +39,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       role: true,
       active: true,
       hireDate: true,
+      avatarUrl: true,
+      fullName: true,
+      birthDate: true,
+      cpf: true,
+      cnpj: true,
       ...(isAdmin ? { salary: true, variable: true } : {}),
       adminUser: { select: { email: true, role: true } },
       clientPortfolio: {
@@ -62,7 +68,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   try {
     const body = await req.json();
-    const { loginEmail, loginPassword, clientIds, hireDate, ...rest } = updateSchema.parse(body);
+    const { loginEmail, loginPassword, loginRole, clientIds, hireDate, ...rest } = updateSchema.parse(body);
 
     const collab = await prisma.collaborator.update({
       where: { id },
@@ -73,17 +79,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     });
 
     // Atualizar login se fornecido
-    if (loginEmail || loginPassword) {
+    if (loginEmail || loginPassword || loginRole) {
       const existingUser = await prisma.adminUser.findUnique({ where: { collaboratorId: id } });
       if (existingUser) {
         const updateData: Record<string, unknown> = {};
         if (loginEmail) updateData.email = loginEmail.toLowerCase().trim();
         if (loginPassword) updateData.password = await bcrypt.hash(loginPassword, 12);
+        if (loginRole) updateData.role = loginRole;
         await prisma.adminUser.update({ where: { collaboratorId: id }, data: updateData });
       } else if (loginEmail && loginPassword) {
         const hash = await bcrypt.hash(loginPassword, 12);
         await prisma.adminUser.create({
-          data: { email: loginEmail.toLowerCase().trim(), password: hash, role: "operator", collaboratorId: id },
+          data: { email: loginEmail.toLowerCase().trim(), password: hash, role: loginRole ?? "operator", collaboratorId: id },
         });
       }
     }

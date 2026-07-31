@@ -14,6 +14,7 @@ const createSchema = z.object({
   contractDate: z.string().nullable().optional(),
   services: z.array(z.string()).nullable().optional(),
   operatorIds: z.array(z.string()).optional(),
+  links: z.array(z.object({ label: z.string().min(1), url: z.string().min(1) })).optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
           collaborator: { select: { id: true, name: true } },
         },
       },
+      links: { select: { id: true, label: true, url: true }, orderBy: { order: "asc" } },
     },
   });
 
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { operatorIds, ...rest } = createSchema.parse(body);
+    const { operatorIds, links, ...rest } = createSchema.parse(body);
 
     const existing = await prisma.client.findUnique({ where: { slug: rest.slug } });
     if (existing) return NextResponse.json({ error: "slug_taken" }, { status: 409 });
@@ -79,6 +81,12 @@ export async function POST(req: NextRequest) {
     if (operatorIds && operatorIds.length > 0) {
       await prisma.clientOperator.createMany({
         data: operatorIds.map(collaboratorId => ({ clientId: client.id, collaboratorId })),
+      });
+    }
+
+    if (links && links.length > 0) {
+      await prisma.clientLink.createMany({
+        data: links.map((l, i) => ({ clientId: client.id, label: l.label, url: l.url, order: i })),
       });
     }
 

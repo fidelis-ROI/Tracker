@@ -23,6 +23,7 @@ model Client {
   responses     NpsResponse[]
   operators     ClientOperator[]
   observations  ClientObservation[]
+  links         ClientLink[]
 }
 
 model Collaborator {
@@ -30,6 +31,12 @@ model Collaborator {
   name              String
   role              String           // "gestor_trafego" | "designer"
   active            Boolean          @default(true)
+  // Dados pessoais (preenchidos pela própria pessoa no Painel Pessoal)
+  fullName          String?          // Nome completo
+  birthDate         DateTime?        // Data de nascimento
+  cpf               String?
+  cnpj              String?
+  avatarUrl         String?          // foto do perfil (data URL base64)
   // Campos admin-only
   salary            Float?           // Salário base (R$)
   variable          Float?           // Variável/comissão (R$)
@@ -218,4 +225,18 @@ model ClientObservation {
   updatedAt      DateTime     @updatedAt
 
   @@unique([clientId, collaboratorId])
+}
+
+// Links úteis por cliente (ex: pasta do logo do cliente). Gerenciado pelo admin,
+// visível para quem tem o cliente na carteira.
+model ClientLink {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  label     String
+  url       String
+  order     Float    @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
 }

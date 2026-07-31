@@ -23,6 +23,7 @@ interface Client {
   contractDate?: string | null;
   services?: string | null;
   operators?: { id: string; name: string }[];
+  links?: { id: string; label: string; url: string }[];
 }
 
 interface Collaborator { id: string; name: string; role: string; }
@@ -72,6 +73,7 @@ export default function ClientesPage() {
   const [selectedOps, setSelectedOps] = useState<string[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [customService, setCustomService] = useState("");
+  const [links, setLinks] = useState<{ label: string; url: string }[]>([]);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -113,6 +115,7 @@ export default function ClientesPage() {
     setSelectedOps([]);
     setSelectedServices([]);
     setCustomService("");
+    setLinks([]);
     reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "" });
     setOpen(true);
   }
@@ -123,6 +126,7 @@ export default function ClientesPage() {
     setSelectedOps(client.operators?.map(o => o.id) ?? []);
     setSelectedServices(parseServices(client.services));
     setCustomService("");
+    setLinks(client.links?.map(l => ({ label: l.label, url: l.url })) ?? []);
     reset({
       name: client.name,
       slug: client.slug,
@@ -166,6 +170,7 @@ export default function ClientesPage() {
         payload.ticket = data.ticket ? parseFloat(data.ticket) : null;
         payload.contractDate = data.contractDate || null;
         payload.services = selectedServices.length ? selectedServices : null;
+        payload.links = links.map(l => ({ label: l.label.trim(), url: l.url.trim() })).filter(l => l.label && l.url);
       }
 
       const url = editing ? `/api/admin/clients/${editing.id}` : "/api/admin/clients";
@@ -493,6 +498,38 @@ export default function ClientesPage() {
                         Adicionar
                       </button>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-dim block mb-2">Links úteis <span className="opacity-60">(ex: pasta do logo do cliente)</span></label>
+                    <div className="space-y-2">
+                      {links.map((l, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <input
+                            value={l.label}
+                            onChange={(e) => setLinks(prev => prev.map((x, j) => j === i ? { ...x, label: e.target.value } : x))}
+                            placeholder="Nome"
+                            className="w-1/3 bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                          />
+                          <input
+                            value={l.url}
+                            onChange={(e) => setLinks(prev => prev.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
+                            placeholder="https://…"
+                            className="flex-1 bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                          />
+                          <button type="button" onClick={() => setLinks(prev => prev.filter((_, j) => j !== i))} className="text-faint hover:text-red-400 p-1.5 transition-all">
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLinks(prev => [...prev, { label: "", url: "" }])}
+                      className="mt-2 flex items-center gap-1.5 text-xs text-dim hover:text-ink transition-all"
+                    >
+                      <Plus size={14} /> Adicionar link
+                    </button>
                   </div>
                 </div>
               )}
