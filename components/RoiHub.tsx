@@ -47,14 +47,12 @@ const LINKS: LinkCard[] = [
 // Pasta oficial com os arquivos de logo no Drive.
 const LOGO_DRIVE_URL = "https://drive.google.com/drive/folders/1GP8D3xf0pW2XPBE3TZZt0HKXaRau3m0y?usp=sharing";
 
-// Dados para emissão de nota fiscal. Preencha com os dados reais.
+// Dados para emissão de nota fiscal.
 const NF_DATA: { label: string; value: string }[] = [
-  { label: "Razão social", value: "" },
-  { label: "Nome fantasia", value: "" },
-  { label: "CNPJ", value: "" },
-  { label: "Inscrição municipal", value: "" },
-  { label: "Endereço", value: "" },
-  { label: "E-mail financeiro", value: "" },
+  { label: "Razão social / Nome empresarial", value: "53.020.275 RODRIGO FIDELIS NOGUEIRA VASCONCELOS" },
+  { label: "CNPJ", value: "53.020.275/0001-53" },
+  { label: "Endereço", value: "Rua Rio de Janeiro, 1436, Apto 1501, Lourdes, Belo Horizonte, MG" },
+  { label: "CEP", value: "30.160-042" },
 ];
 
 function Section({ children, className }: { children: React.ReactNode; className?: string }) {
