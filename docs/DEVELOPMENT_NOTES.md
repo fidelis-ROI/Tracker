@@ -323,3 +323,12 @@ Migration `20260804100000_last_login` (`AdminUser.lastLoginAt`) aplicada em prod
 - **Último acesso**: `AdminUser.lastLoginAt` atualizado no login (jwt callback de `lib/auth.ts` — `account` só vem no login Google, `user` só no login por credenciais, então grava 1x por login). Exibido em `/admin/tripulacao` no expandido: "Último acesso" (data/hora) · "Nunca acessou" · "Sem acesso". Incluído em `adminUser` no GET de collaborators.
 - **Notificação fixa "Complete seu perfil"**: `GET /api/notifications` calcula `profileIncomplete` (campos obrigatórios: fullName, birthDate, cpf, cnpj + bancários bankHolder/bankInstitution/bankAgency/bankAccount/pixKey). O `NotificationBell` mostra um item fixo no topo (âmbar, "Pendente") que **não some** e não pode ser marcado como lido — só desaparece quando o perfil fica completo. Clicar leva a `/operador/perfil`. O badge do sino acende (mostra "!" se não houver outras não-lidas).
 - **Admin master fidelis**: `AdminUser` `fidelis@roipartners.com.br` (role `admin`, login via Google, sem senha) já existia com `collaboratorId` nulo; foi **vinculado ao Collaborator "Rodrigo Fidelis"** (`cms819q7y00210pqndhl3jugn`) via `UPDATE` no console do Railway. Operações de dados em prod feitas com `node -e` + `pg` usando query **parametrizada** (`$1` escapado como `\$1` no shell, senão o bash expande para vazio).
+
+---
+
+## 16. "Perfil" (renomeado) + campos de informação por cliente (2026-08-04)
+
+Migration `20260804200000_client_info_fields` aplicada em prod.
+
+- **Rename**: "Painel Pessoal" → **"Perfil"** (nav da sidebar do operador + título da página `/operador/perfil`). Sem mudança de comportamento — cada um continua vendo/editando só o próprio perfil (admin vê todos).
+- **Campos por cliente** (scalars em `Client`, geridos pelo admin no modal de cliente, seção "Informações do cliente"): `driveUrl` (Link do Drive), `usefulInfo` (Informações úteis, textarea), `logoUrl1`/`logoUrl2`/`logoUrl3` (3 slots de logo), `notes` (Observações — **campo `notes`, não `observations`**, pois `Client.observations` já é a relação com `ClientObservation`). Salvos no POST/PUT de `/api/admin/clients`. Operador vê no card expandido de `/operador/clientes` (bloco "Materiais" com chips Drive/Logo 1-3 + "Informações úteis" + "Observações"), incluídos em `/api/operador/portfolio`. Continua existindo, separado, o "Minhas observações" privado por operador (`ClientObservation`).
