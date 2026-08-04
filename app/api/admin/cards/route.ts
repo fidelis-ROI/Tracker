@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getActor, logActivity, nextCardCode, BOARD_STATUSES, PRIORITIES } from "@/lib/boards";
+import { notify } from "@/lib/notifications";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -41,14 +42,27 @@ export async function POST(req: NextRequest) {
         parentId: data.parentId ?? null,
         assigneeId: data.assigneeId ?? null,
         tagId: data.tagId ?? null,
+        // Data de criação (Início) padrão = hoje; editável depois no painel do card.
+        startDate: new Date(),
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         createdByName: actor.name,
         createdByEmail: actor.email,
       },
-      select: { id: true, code: true, title: true, status: true, parentId: true },
+      select: { id: true, boardId: true, code: true, title: true, status: true, parentId: true },
     });
 
     await logActivity(card.id, actor.name, "created", data.parentId ? "criou a subtarefa" : "criou o card");
+
+    // Notifica quem foi atribuído na criação (exceto a própria pessoa).
+    if (data.assigneeId) {
+      await notify({
+        recipientIds: [data.assigneeId],
+        excludeCollaboratorId: actor.session.user.collaboratorId,
+        actorName: actor.name,
+        type: "assigned",
+        card,
+      });
+    }
 
     return NextResponse.json(card, { status: 201 });
   } catch (err) {

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
 import type { BoardMeta, Collaborator } from "@/components/boards/types";
+import { MentionTextarea } from "@/components/boards/MentionTextarea";
 import {
   X, Trash2, Plus, Paperclip, GitBranch, Link2, Send, CheckSquare, Square, Clock, MessageSquare,
 } from "lucide-react";
@@ -91,6 +92,8 @@ export function CardPanel({
   const [desc, setDesc] = useState("");
   const [checkText, setCheckText] = useState("");
   const [comment, setComment] = useState("");
+  const [commentMentions, setCommentMentions] = useState<string[]>([]);
+  const [descMentions, setDescMentions] = useState<string[]>([]);
   const [subTitle, setSubTitle] = useState("");
   const [relTo, setRelTo] = useState("");
   const [relType, setRelType] = useState("relacionado");
@@ -156,11 +159,13 @@ export function CardPanel({
   async function addComment() {
     const body = comment.trim();
     if (!body) return;
+    const mentions = commentMentions;
     setComment("");
+    setCommentMentions([]);
     await fetch(`/api/admin/cards/${cardId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ body, mentions }),
     });
     loadCard();
   }
@@ -303,14 +308,23 @@ export function CardPanel({
 
               {/* Descrição */}
               <p className="text-[13px] font-semibold text-dim mb-2">Descrição</p>
-              <textarea
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-                onBlur={() => desc !== (card.description ?? "") && patch({ description: desc || null }, false)}
-                placeholder="Escreva uma descrição…"
-                rows={4}
-                className={`${input} mb-8 resize-y`}
-              />
+              <div className="mb-8">
+                <MentionTextarea
+                  value={desc}
+                  onChange={setDesc}
+                  people={collaborators}
+                  onPick={(id) => setDescMentions((m) => (m.includes(id) ? m : [...m, id]))}
+                  onBlur={() => {
+                    if (desc !== (card.description ?? "")) {
+                      patch({ description: desc || null, mentions: descMentions }, false);
+                      setDescMentions([]);
+                    }
+                  }}
+                  placeholder="Escreva uma descrição… (@ para mencionar)"
+                  rows={4}
+                  className={`${input} resize-y`}
+                />
+              </div>
 
               {/* Checklist */}
               <SectionTitle icon={<CheckSquare size={15} />} title="Checklist"
@@ -447,11 +461,13 @@ export function CardPanel({
               {tab === "comments" ? (
                 <div>
                   <div className="flex gap-2 mb-5">
-                    <textarea
+                    <MentionTextarea
                       value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      onKeyDown={(e) => (e.metaKey || e.ctrlKey) && e.key === "Enter" && addComment()}
-                      placeholder="Escrever comentário… (Ctrl+Enter para enviar)"
+                      onChange={setComment}
+                      people={collaborators}
+                      onPick={(id) => setCommentMentions((m) => (m.includes(id) ? m : [...m, id]))}
+                      onSubmitShortcut={addComment}
+                      placeholder="Escrever comentário… (@ menciona · Ctrl+Enter envia)"
                       rows={2}
                       className={`${input} resize-y`}
                     />

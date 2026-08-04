@@ -49,6 +49,7 @@ model Collaborator {
   cardsAssigned     BoardCard[]      @relation("CardAssignee")
   cardsCoAssigned   BoardCard[]      @relation("CardCoAssignee")
   observations      ClientObservation[]
+  notifications     Notification[]   @relation("NotifRecipient")
 }
 
 // Relação explícita: quais clientes cada operador gerencia
@@ -153,6 +154,7 @@ model BoardCard {
   activities    CardActivity[]
   relationsFrom CardRelation[]      @relation("RelFrom")
   relationsTo   CardRelation[]      @relation("RelTo")
+  notifications Notification[]
 
   @@index([boardId])
   @@index([parentId])
@@ -225,6 +227,27 @@ model ClientObservation {
   updatedAt      DateTime     @updatedAt
 
   @@unique([clientId, collaboratorId])
+}
+
+// Notificações internas: quando alguém atribui um card a você ou te menciona
+// (em comentário ou descrição). O destinatário é sempre um Collaborator.
+model Notification {
+  id          String       @id @default(cuid())
+  recipientId String
+  recipient   Collaborator @relation("NotifRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  type        String       // "assigned" | "mention"
+  actorName   String       // quem gerou a notificação
+  cardId      String?
+  card        BoardCard?   @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  boardId     String?      // para montar o link do board
+  cardCode    String?      // snapshot para exibir mesmo se o card sumir
+  cardTitle   String?
+  context     String?      // "comment" | "description" | null
+  read        Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+
+  @@index([recipientId, read])
+  @@index([recipientId, createdAt])
 }
 
 // Links úteis por cliente (ex: pasta do logo do cliente). Gerenciado pelo admin,

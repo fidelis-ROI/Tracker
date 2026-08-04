@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { LayoutGrid, Users, UserCheck, DollarSign, KanbanSquare, Sparkles, LogOut, ChevronRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/Logo";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutGrid },
@@ -23,8 +24,9 @@ export function Sidebar() {
   return (
     <aside className="w-[280px] flex-shrink-0 bg-canvas border-r border-line flex flex-col justify-between h-screen sticky top-0 py-7 px-5">
       <div>
-        <div className="pb-5 mb-5 border-b border-line">
+        <div className="pb-5 mb-5 border-b border-line flex items-start justify-between gap-2">
           <Logo subtitle="Painel de Performance" />
+          <NotificationBell boardsBase="/admin/boards" />
         </div>
 
         <nav className="flex flex-col gap-1.5">

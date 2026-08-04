@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getActor, logActivity, STATUS_LABELS, BOARD_STATUSES, PRIORITIES, PRIORITY_LABELS, type BoardStatus, type Priority } from "@/lib/boards";
+import { notify } from "@/lib/notifications";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -14,6 +15,8 @@ const updateSchema = z.object({
   tagId: z.string().nullable().optional(),
   startDate: z.string().nullable().optional(),
   dueDate: z.string().nullable().optional(),
+  // Collaborator ids mencionados na descrição nesta edição (para notificar).
+  mentions: z.array(z.string()).optional(),
 });
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -87,7 +90,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const before = await prisma.boardCard.findUnique({
       where: { id },
-      select: { status: true, priority: true, assigneeId: true, dueDate: true, title: true, tagId: true },
+      select: { status: true, priority: true, assigneeId: true, coAssigneeId: true, dueDate: true, title: true, tagId: true },
     });
     if (!before) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
@@ -105,8 +108,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         startDate: data.startDate !== undefined ? (data.startDate ? new Date(data.startDate) : null) : undefined,
         dueDate: data.dueDate !== undefined ? (data.dueDate ? new Date(data.dueDate) : null) : undefined,
       },
-      select: { id: true, status: true },
+      select: { id: true, boardId: true, code: true, title: true, status: true },
     });
+
+    const meCollabId = actor.session.user.collaboratorId;
+
+    // Notificação: atribuição para outra pessoa (responsável e co-responsável).
+    if (data.assigneeId !== undefined && data.assigneeId !== before.assigneeId && data.assigneeId) {
+      await notify({ recipientIds: [data.assigneeId], excludeCollaboratorId: meCollabId, actorName: actor.name, type: "assigned", card });
+    }
+    if (data.coAssigneeId !== undefined && data.coAssigneeId !== before.coAssigneeId && data.coAssigneeId) {
+      await notify({ recipientIds: [data.coAssigneeId], excludeCollaboratorId: meCollabId, actorName: actor.name, type: "assigned", card });
+    }
+    // Notificação: menções na descrição (ids enviados pelo cliente nesta edição).
+    if (data.mentions && data.mentions.length > 0) {
+      await notify({ recipientIds: data.mentions, excludeCollaboratorId: meCollabId, actorName: actor.name, type: "mention", card, context: "description" });
+    }
 
     // Timeline — só registra mudanças significativas
     if (data.status && data.status !== before.status) {

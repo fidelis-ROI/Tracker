@@ -99,6 +99,12 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
     load();
   }, [load]);
 
+  // Deep-link vindo de uma notificação: ?card=<id> abre o painel do card.
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get("card");
+    if (c) setOpenCardId(c);
+  }, []);
+
   async function moveCard(cardId: string, status: string) {
     const card = cards.find((c) => c.id === cardId);
     if (!card || card.status === status) return;
