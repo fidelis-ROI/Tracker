@@ -302,3 +302,14 @@ Migration `20260731000000_notifications` (aplicada em prod via Console do Railwa
 - **Sino**: `components/NotificationBell.tsx` no topo das duas sidebars (`boardsBase` = `/admin/boards` ou `/operador/boards`). Badge de não-lidas, dropdown clicável, polling 30s. Clicar marca como lida e navega para `${boardsBase}/${boardId}?card=${cardId}`. API: `GET /api/notifications` (lista + `unreadCount`, destinatário = `session.user.collaboratorId`) e `PATCH` (`{id}` ou `{all:true}`) — usa `updateMany` com filtro do dono. Admin sem `Collaborator` vinculado não recebe notificações.
 - **Deep-link**: `BoardView` lê `?card=` de `window.location` (sem `useSearchParams`, evita exigência de Suspense) e abre o `CardPanel`.
 - **Início = hoje**: `POST /api/admin/cards` grava `startDate: new Date()` por padrão (editável depois no painel).
+
+---
+
+## 14. Login Google, cargo Líder, conta bancária, fix tema claro (2026-08-04)
+
+Migration `20260804000000_bank_fields` (5 colunas em `Collaborator`) aplicada em prod via Console do Railway.
+
+- **Fix tema claro**: os botões de seleção (nível de acesso Operador/Administrador e chips de carteira em `/admin/tripulacao`) usavam `bg-[#5B21F0]/20 ... text-white` — invisível no claro. Trocado para roxo **sólido** quando selecionado (`bg-[#5B21F0] border-[#5B21F0] text-white`), visível nos dois temas.
+- **Login pelo Google (sem senha)**: `AdminUser.password` é opcional; login Google exige apenas um `AdminUser` com o e-mail (`@roipartners.com.br`) já cadastrado. No modal de operador há um switch "Login pelo Google" que esconde o campo de senha; a API (`loginGoogle` em collaborators POST/PUT) cria o `AdminUser` com `password: null`. Vale para operador ou administrador (via `loginRole`).
+- **Cargo Líder**: `Collaborator.role` agora aceita `gestor_trafego | lider | designer`. Helper `lib/roles.ts` (`ROLE_LABELS`/`roleLabel`) centraliza os rótulos. Em `/admin/tripulacao`: opção no select, seção "Líderes", e a carteira de clientes aparece para gestor **e** líder. NPS/financeiro continuam filtrando só `gestor_trafego` (líder não entra no cálculo de NPS/comissão automaticamente).
+- **Conta bancária** (campos em `Collaborator`: `bankHolder`, `bankInstitution`, `bankAgency`, `bankAccount`, `pixKey`): editável pela pessoa no Painel Pessoal (card "Conta bancária" com aviso explícito **"a conta precisa estar vinculada ao CNPJ"**), salvo junto do resto via `PUT /api/operador/profile`. Visível ao admin no expandido de Operadores (bloco "Conta bancária · vinculada ao CNPJ", admin-only).
