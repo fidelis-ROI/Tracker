@@ -14,7 +14,7 @@ const navItems = [
   { href: "/operador/clientes", label: "Clientes", icon: Users },
   { href: "/operador/boards", label: "Boards", icon: KanbanSquare },
   { href: "/operador/roi", label: "ROI", icon: Sparkles },
-  { href: "/operador/perfil", label: "Painel Pessoal", icon: User },
+  { href: "/operador/perfil", label: "Perfil", icon: User },
 ];
 
 export function OperadorSidebar() {

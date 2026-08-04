@@ -15,6 +15,12 @@ const updateSchema = z.object({
   services: z.array(z.string()).nullable().optional(),
   operatorIds: z.array(z.string()).optional(), // IDs dos operadores atribuídos
   links: z.array(z.object({ label: z.string().min(1), url: z.string().min(1) })).optional(),
+  driveUrl: z.string().nullable().optional(),
+  usefulInfo: z.string().nullable().optional(),
+  logoUrl1: z.string().nullable().optional(),
+  logoUrl2: z.string().nullable().optional(),
+  logoUrl3: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

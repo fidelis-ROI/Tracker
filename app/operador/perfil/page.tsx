@@ -119,7 +119,7 @@ export default function OperadorPerfilPage() {
 
   return (
     <div className="px-16 py-14">
-      <h1 className="text-[34px] font-extrabold text-ink tracking-[-0.01em] mb-2">Painel Pessoal</h1>
+      <h1 className="text-[34px] font-extrabold text-ink tracking-[-0.01em] mb-2">Perfil</h1>
       <p className="text-base text-dim mb-8">Seus dados e informações profissionais</p>
 
       {loading ? (

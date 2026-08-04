@@ -15,6 +15,12 @@ const createSchema = z.object({
   services: z.array(z.string()).nullable().optional(),
   operatorIds: z.array(z.string()).optional(),
   links: z.array(z.object({ label: z.string().min(1), url: z.string().min(1) })).optional(),
+  driveUrl: z.string().nullable().optional(),
+  usefulInfo: z.string().nullable().optional(),
+  logoUrl1: z.string().nullable().optional(),
+  logoUrl2: z.string().nullable().optional(),
+  logoUrl3: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -34,6 +40,12 @@ export async function GET(req: NextRequest) {
       hasDesigner: true,
       brand: true,
       createdAt: true,
+      driveUrl: true,
+      usefulInfo: true,
+      logoUrl1: true,
+      logoUrl2: true,
+      logoUrl3: true,
+      notes: true,
       ...(isAdmin ? { ticket: true, contractDate: true, services: true } : {}),
       operators: {
         select: {
@@ -75,6 +87,12 @@ export async function POST(req: NextRequest) {
         ticket: rest.ticket,
         contractDate: rest.contractDate ? new Date(rest.contractDate) : undefined,
         services: rest.services ? JSON.stringify(rest.services) : undefined,
+        driveUrl: rest.driveUrl ?? undefined,
+        usefulInfo: rest.usefulInfo ?? undefined,
+        logoUrl1: rest.logoUrl1 ?? undefined,
+        logoUrl2: rest.logoUrl2 ?? undefined,
+        logoUrl3: rest.logoUrl3 ?? undefined,
+        notes: rest.notes ?? undefined,
       },
     });
 

@@ -18,6 +18,13 @@ model Client {
   ticket        Float?           // Ticket mensal (R$)
   contractDate  DateTime?        // Data de contratação
   services      String?          // JSON: ["Tráfego", "Criativos", ...]
+  // Informações do cliente (gerenciadas pelo admin, visíveis para a carteira)
+  driveUrl      String?          // Link da pasta do Drive
+  usefulInfo    String?          // Informações úteis (texto livre)
+  logoUrl1      String?          // Link de logo (slot 1)
+  logoUrl2      String?          // Link de logo (slot 2)
+  logoUrl3      String?          // Link de logo (slot 3)
+  notes         String?          // Observações gerais do cliente (compartilhadas)
   createdAt     DateTime         @default(now())
   deletedAt     DateTime?        // Soft delete: preserva histórico de NPS/financeiro, oculto das listagens
   responses     NpsResponse[]

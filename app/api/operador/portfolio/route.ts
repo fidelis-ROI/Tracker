@@ -21,6 +21,12 @@ export async function GET() {
           slug: true,
           active: true,
           hasDesigner: true,
+          driveUrl: true,
+          usefulInfo: true,
+          logoUrl1: true,
+          logoUrl2: true,
+          logoUrl3: true,
+          notes: true,
           links: { select: { id: true, label: true, url: true }, orderBy: { order: "asc" } },
           responses: {
             orderBy: { submittedAt: "desc" },

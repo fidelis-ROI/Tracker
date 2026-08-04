@@ -97,6 +97,12 @@ interface ClientNps {
   name: string;
   slug: string;
   active: boolean;
+  driveUrl: string | null;
+  usefulInfo: string | null;
+  logoUrl1: string | null;
+  logoUrl2: string | null;
+  logoUrl3: string | null;
+  notes: string | null;
   links: ClientLink[];
   responses: NpsResponse[];
 }
@@ -265,6 +271,41 @@ export default function OperadorClientesPage() {
                               </a>
                             ))}
                           </div>
+                        </div>
+                      )}
+                      {(client.driveUrl || client.logoUrl1 || client.logoUrl2 || client.logoUrl3 || client.usefulInfo || client.notes) && (
+                        <div className="px-[26px] py-4 border-b border-line space-y-4">
+                          {(client.driveUrl || client.logoUrl1 || client.logoUrl2 || client.logoUrl3) && (
+                            <div>
+                              <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase block mb-2.5">Materiais</span>
+                              <div className="flex flex-wrap gap-2">
+                                {client.driveUrl && (
+                                  <a href={client.driveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-surface-hover hover:bg-surface border border-line text-ink text-[13px] font-medium px-3 py-1.5 rounded-lg transition-all">
+                                    <ExternalLink size={13} className="text-brand" /> Drive
+                                  </a>
+                                )}
+                                {[client.logoUrl1, client.logoUrl2, client.logoUrl3].map((u, i) =>
+                                  u ? (
+                                    <a key={i} href={u} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-surface-hover hover:bg-surface border border-line text-ink text-[13px] font-medium px-3 py-1.5 rounded-lg transition-all">
+                                      <ExternalLink size={13} className="text-brand" /> Logo {i + 1}
+                                    </a>
+                                  ) : null,
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {client.usefulInfo && (
+                            <div>
+                              <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase block mb-1.5">Informações úteis</span>
+                              <p className="text-[13.5px] text-ink whitespace-pre-wrap leading-relaxed">{client.usefulInfo}</p>
+                            </div>
+                          )}
+                          {client.notes && (
+                            <div>
+                              <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase block mb-1.5">Observações</span>
+                              <p className="text-[13.5px] text-ink whitespace-pre-wrap leading-relaxed">{client.notes}</p>
+                            </div>
+                          )}
                         </div>
                       )}
                       <div className="px-[26px] py-4 border-b border-line">

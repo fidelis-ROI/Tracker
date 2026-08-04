@@ -24,6 +24,12 @@ interface Client {
   services?: string | null;
   operators?: { id: string; name: string }[];
   links?: { id: string; label: string; url: string }[];
+  driveUrl?: string | null;
+  usefulInfo?: string | null;
+  logoUrl1?: string | null;
+  logoUrl2?: string | null;
+  logoUrl3?: string | null;
+  notes?: string | null;
 }
 
 interface Collaborator { id: string; name: string; role: string; }
@@ -39,6 +45,12 @@ const schema = z.object({
   ticket: z.string().optional(),
   contractDate: z.string().optional(),
   operatorIds: z.array(z.string()).optional(),
+  driveUrl: z.string().optional(),
+  usefulInfo: z.string().optional(),
+  logoUrl1: z.string().optional(),
+  logoUrl2: z.string().optional(),
+  logoUrl3: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -116,7 +128,7 @@ export default function ClientesPage() {
     setSelectedServices([]);
     setCustomService("");
     setLinks([]);
-    reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "" });
+    reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "", driveUrl: "", usefulInfo: "", logoUrl1: "", logoUrl2: "", logoUrl3: "", notes: "" });
     setOpen(true);
   }
 
@@ -135,6 +147,12 @@ export default function ClientesPage() {
       brand: client.brand,
       ticket: client.ticket?.toString() ?? "",
       contractDate: client.contractDate ? client.contractDate.slice(0, 10) : "",
+      driveUrl: client.driveUrl ?? "",
+      usefulInfo: client.usefulInfo ?? "",
+      logoUrl1: client.logoUrl1 ?? "",
+      logoUrl2: client.logoUrl2 ?? "",
+      logoUrl3: client.logoUrl3 ?? "",
+      notes: client.notes ?? "",
     });
     setOpen(true);
   }
@@ -172,6 +190,13 @@ export default function ClientesPage() {
         payload.services = selectedServices.length ? selectedServices : null;
         payload.links = links.map(l => ({ label: l.label.trim(), url: l.url.trim() })).filter(l => l.label && l.url);
       }
+
+      payload.driveUrl = data.driveUrl?.trim() || null;
+      payload.usefulInfo = data.usefulInfo?.trim() || null;
+      payload.logoUrl1 = data.logoUrl1?.trim() || null;
+      payload.logoUrl2 = data.logoUrl2?.trim() || null;
+      payload.logoUrl3 = data.logoUrl3?.trim() || null;
+      payload.notes = data.notes?.trim() || null;
 
       const url = editing ? `/api/admin/clients/${editing.id}` : "/api/admin/clients";
       const method = editing ? "PUT" : "POST";
@@ -530,6 +555,48 @@ export default function ClientesPage() {
                     >
                       <Plus size={14} /> Adicionar link
                     </button>
+                  </div>
+
+                  <div className="border-t border-line pt-4 space-y-3">
+                    <p className="text-xs font-semibold text-brand-soft uppercase tracking-widest">Informações do cliente</p>
+
+                    <div>
+                      <label className="text-xs text-dim block mb-1">Link do Drive</label>
+                      <input
+                        {...register("driveUrl")}
+                        placeholder="https://drive.google.com/…"
+                        className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-dim block mb-1">Links de logos <span className="opacity-60">(3 slots)</span></label>
+                      <div className="space-y-2">
+                        <input {...register("logoUrl1")} placeholder="Logo 1 — https://…" className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]" />
+                        <input {...register("logoUrl2")} placeholder="Logo 2 — https://…" className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]" />
+                        <input {...register("logoUrl3")} placeholder="Logo 3 — https://…" className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-dim block mb-1">Informações úteis</label>
+                      <textarea
+                        {...register("usefulInfo")}
+                        rows={3}
+                        placeholder="Acessos, senhas de referência, contatos, particularidades do cliente…"
+                        className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 resize-y focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-dim block mb-1">Observações</label>
+                      <textarea
+                        {...register("notes")}
+                        rows={3}
+                        placeholder="Observações gerais sobre o cliente…"
+                        className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 resize-y focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

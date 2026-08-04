@@ -1,0 +1,6 @@
+ALTER TABLE "Client" ADD COLUMN "driveUrl" TEXT;
+ALTER TABLE "Client" ADD COLUMN "usefulInfo" TEXT;
+ALTER TABLE "Client" ADD COLUMN "logoUrl1" TEXT;
+ALTER TABLE "Client" ADD COLUMN "logoUrl2" TEXT;
+ALTER TABLE "Client" ADD COLUMN "logoUrl3" TEXT;
+ALTER TABLE "Client" ADD COLUMN "notes" TEXT;
