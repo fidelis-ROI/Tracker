@@ -37,6 +37,12 @@ model Collaborator {
   cpf               String?
   cnpj              String?
   avatarUrl         String?          // foto do perfil (data URL base64)
+  // Dados bancários (a conta precisa estar vinculada ao CNPJ da pessoa)
+  bankHolder        String?          // Nome do titular da conta
+  bankInstitution   String?          // Instituição/banco
+  bankAgency        String?          // Agência
+  bankAccount       String?          // Conta
+  pixKey            String?          // Chave PIX
   // Campos admin-only
   salary            Float?           // Salário base (R$)
   variable          Float?           // Variável/comissão (R$)

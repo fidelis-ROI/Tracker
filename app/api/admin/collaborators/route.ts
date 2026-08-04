@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 
 const createSchema = z.object({
   name: z.string().min(1),
-  role: z.enum(["gestor_trafego", "designer"]),
+  role: z.enum(["gestor_trafego", "lider", "designer"]),
   active: z.boolean().default(true),
   salary: z.number().nullable().optional(),
   variable: z.number().nullable().optional(),
@@ -15,6 +15,7 @@ const createSchema = z.object({
   createLogin: z.boolean().optional(),
   loginEmail: z.string().email().optional(),
   loginPassword: z.string().min(6).optional(),
+  loginGoogle: z.boolean().optional(), // login via Google (sem senha)
   loginRole: z.enum(["operator", "admin"]).optional(),
   clientIds: z.array(z.string()).optional(),
 });
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
       active: true,
       hireDate: true,
       avatarUrl: true,
-      ...(isAdmin ? { salary: true, variable: true, fullName: true, birthDate: true, cpf: true, cnpj: true } : {}),
+      ...(isAdmin ? { salary: true, variable: true, fullName: true, birthDate: true, cpf: true, cnpj: true, bankHolder: true, bankInstitution: true, bankAgency: true, bankAccount: true, pixKey: true } : {}),
       adminUser: { select: { email: true, role: true } },
       clientPortfolio: {
         select: { client: { select: { id: true, name: true, slug: true } } },
@@ -69,8 +70,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (data.createLogin && data.loginEmail && data.loginPassword) {
-      const hash = await bcrypt.hash(data.loginPassword, 12);
+    // Cria acesso ao portal: por senha, ou via Google (sem senha — password null).
+    if (data.createLogin && data.loginEmail && (data.loginPassword || data.loginGoogle)) {
+      const hash = data.loginPassword ? await bcrypt.hash(data.loginPassword, 12) : null;
       await prisma.adminUser.create({
         data: { email: data.loginEmail.toLowerCase().trim(), password: hash, role: data.loginRole ?? "operator", collaboratorId: collab.id },
       });

@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, Calendar, Briefcase, Mail, Clock, Camera, IdCard } from "lucide-react";
+import { User, Calendar, Briefcase, Mail, Clock, Camera, IdCard, Landmark } from "lucide-react";
+import { roleLabel } from "@/lib/roles";
 
 interface Profile {
   id: string;
@@ -16,6 +17,11 @@ interface Profile {
   cpf: string | null;
   cnpj: string | null;
   avatarUrl: string | null;
+  bankHolder: string | null;
+  bankInstitution: string | null;
+  bankAgency: string | null;
+  bankAccount: string | null;
+  pixKey: string | null;
   adminUser: { email: string } | null;
   clientPortfolio: { client: { id: string; name: string; slug: string; active: boolean } }[];
 }
@@ -48,6 +54,11 @@ export default function OperadorPerfilPage() {
   const [cpf, setCpf] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [bankHolder, setBankHolder] = useState("");
+  const [bankInstitution, setBankInstitution] = useState("");
+  const [bankAgency, setBankAgency] = useState("");
+  const [bankAccount, setBankAccount] = useState("");
+  const [pixKey, setPixKey] = useState("");
 
   useEffect(() => {
     fetch("/api/operador/profile")
@@ -59,6 +70,11 @@ export default function OperadorPerfilPage() {
         setCpf(p.cpf ?? "");
         setCnpj(p.cnpj ?? "");
         setAvatarUrl(p.avatarUrl ?? null);
+        setBankHolder(p.bankHolder ?? "");
+        setBankInstitution(p.bankInstitution ?? "");
+        setBankAgency(p.bankAgency ?? "");
+        setBankAccount(p.bankAccount ?? "");
+        setPixKey(p.pixKey ?? "");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -86,11 +102,11 @@ export default function OperadorPerfilPage() {
       const res = await fetch("/api/operador/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, birthDate: birthDate || null, cpf, cnpj, avatarUrl }),
+        body: JSON.stringify({ fullName, birthDate: birthDate || null, cpf, cnpj, avatarUrl, bankHolder, bankInstitution, bankAgency, bankAccount, pixKey }),
       });
       if (!res.ok) throw new Error();
       toast.success("Dados salvos!");
-      setProfile((p) => (p ? { ...p, fullName, birthDate: birthDate || null, cpf, cnpj, avatarUrl } : p));
+      setProfile((p) => (p ? { ...p, fullName, birthDate: birthDate || null, cpf, cnpj, avatarUrl, bankHolder, bankInstitution, bankAgency, bankAccount, pixKey } : p));
     } catch {
       toast.error("Erro ao salvar. Tente novamente.");
     } finally {
@@ -140,7 +156,7 @@ export default function OperadorPerfilPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-ink">{profile.fullName || profile.name}</h2>
-                <p className="text-dim text-sm">{profile.role === "gestor_trafego" ? "Gestor de Tráfego" : "Designer"}</p>
+                <p className="text-dim text-sm">{roleLabel(profile.role)}</p>
               </div>
               <span className={`ml-auto inline-block rounded-full px-3.5 py-1.5 text-[13px] font-bold ${profile.active ? "bg-brand-tint text-brand" : "bg-surface-hover border border-line text-dim"}`}>
                 {profile.active ? "Ativo" : "Inativo"}
@@ -209,6 +225,38 @@ export default function OperadorPerfilPage() {
                 <input value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0001-00" className={inputCls} />
               </div>
             </div>
+
+            {/* Conta bancária */}
+            <div className="border-t border-line mt-6 pt-5">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Landmark size={16} className="text-brand" />
+                <h4 className="text-[15px] font-bold text-ink">Conta bancária</h4>
+              </div>
+              <p className="text-[12.5px] text-warning mb-4">⚠️ A conta bancária precisa estar vinculada ao seu CNPJ.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="text-xs text-dim block mb-1.5">Nome do titular</label>
+                  <input value={bankHolder} onChange={(e) => setBankHolder(e.target.value)} placeholder="Nome como consta na conta (CNPJ)" className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-xs text-dim block mb-1.5">Instituição / Banco</label>
+                  <input value={bankInstitution} onChange={(e) => setBankInstitution(e.target.value)} placeholder="Ex: Nubank, Itaú…" className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-xs text-dim block mb-1.5">Agência</label>
+                  <input value={bankAgency} onChange={(e) => setBankAgency(e.target.value)} placeholder="0000" className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-xs text-dim block mb-1.5">Conta</label>
+                  <input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} placeholder="00000000-0" className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-xs text-dim block mb-1.5">Chave PIX</label>
+                  <input value={pixKey} onChange={(e) => setPixKey(e.target.value)} placeholder="CNPJ, e-mail, telefone…" className={inputCls} />
+                </div>
+              </div>
+            </div>
+
             <div className="flex justify-end mt-5">
               <button
                 onClick={save}

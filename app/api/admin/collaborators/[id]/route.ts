@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
-  role: z.enum(["gestor_trafego", "designer"]).optional(),
+  role: z.enum(["gestor_trafego", "lider", "designer"]).optional(),
   active: z.boolean().optional(),
   salary: z.number().nullable().optional(),
   variable: z.number().nullable().optional(),
@@ -15,6 +15,7 @@ const updateSchema = z.object({
   // Gerenciar login
   loginEmail: z.string().email().optional(),
   loginPassword: z.string().min(6).optional(),
+  loginGoogle: z.boolean().optional(), // login via Google (sem senha)
   loginRole: z.enum(["operator", "admin"]).optional(),
   clientIds: z.array(z.string()).optional(), // Carteira de clientes
 });
@@ -44,7 +45,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       birthDate: true,
       cpf: true,
       cnpj: true,
-      ...(isAdmin ? { salary: true, variable: true } : {}),
+      ...(isAdmin ? { salary: true, variable: true, bankHolder: true, bankInstitution: true, bankAgency: true, bankAccount: true, pixKey: true } : {}),
       adminUser: { select: { email: true, role: true } },
       clientPortfolio: {
         select: {
@@ -68,7 +69,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   try {
     const body = await req.json();
-    const { loginEmail, loginPassword, loginRole, clientIds, hireDate, ...rest } = updateSchema.parse(body);
+    const { loginEmail, loginPassword, loginGoogle, loginRole, clientIds, hireDate, ...rest } = updateSchema.parse(body);
 
     const collab = await prisma.collaborator.update({
       where: { id },
@@ -79,7 +80,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     });
 
     // Atualizar login se fornecido
-    if (loginEmail || loginPassword || loginRole) {
+    if (loginEmail || loginPassword || loginRole || loginGoogle) {
       const existingUser = await prisma.adminUser.findUnique({ where: { collaboratorId: id } });
       if (existingUser) {
         const updateData: Record<string, unknown> = {};
@@ -87,8 +88,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (loginPassword) updateData.password = await bcrypt.hash(loginPassword, 12);
         if (loginRole) updateData.role = loginRole;
         await prisma.adminUser.update({ where: { collaboratorId: id }, data: updateData });
-      } else if (loginEmail && loginPassword) {
-        const hash = await bcrypt.hash(loginPassword, 12);
+      } else if (loginEmail && (loginPassword || loginGoogle)) {
+        // Cria acesso por senha ou via Google (sem senha).
+        const hash = loginPassword ? await bcrypt.hash(loginPassword, 12) : null;
         await prisma.adminUser.create({
           data: { email: loginEmail.toLowerCase().trim(), password: hash, role: loginRole ?? "operator", collaboratorId: id },
         });

@@ -23,6 +23,11 @@ export async function GET() {
       cpf: true,
       cnpj: true,
       avatarUrl: true,
+      bankHolder: true,
+      bankInstitution: true,
+      bankAgency: true,
+      bankAccount: true,
+      pixKey: true,
       adminUser: { select: { email: true } },
       clientPortfolio: {
         select: {
@@ -45,6 +50,11 @@ const putSchema = z.object({
   cpf: z.string().max(20).nullable().optional(),
   cnpj: z.string().max(24).nullable().optional(),
   avatarUrl: z.string().nullable().optional(),
+  bankHolder: z.string().max(200).nullable().optional(),
+  bankInstitution: z.string().max(120).nullable().optional(),
+  bankAgency: z.string().max(40).nullable().optional(),
+  bankAccount: z.string().max(60).nullable().optional(),
+  pixKey: z.string().max(200).nullable().optional(),
 });
 
 export async function PUT(req: NextRequest) {
@@ -66,8 +76,13 @@ export async function PUT(req: NextRequest) {
         cpf: data.cpf !== undefined ? (data.cpf?.trim() || null) : undefined,
         cnpj: data.cnpj !== undefined ? (data.cnpj?.trim() || null) : undefined,
         avatarUrl: data.avatarUrl !== undefined ? (data.avatarUrl || null) : undefined,
+        bankHolder: data.bankHolder !== undefined ? (data.bankHolder?.trim() || null) : undefined,
+        bankInstitution: data.bankInstitution !== undefined ? (data.bankInstitution?.trim() || null) : undefined,
+        bankAgency: data.bankAgency !== undefined ? (data.bankAgency?.trim() || null) : undefined,
+        bankAccount: data.bankAccount !== undefined ? (data.bankAccount?.trim() || null) : undefined,
+        pixKey: data.pixKey !== undefined ? (data.pixKey?.trim() || null) : undefined,
       },
-      select: { fullName: true, birthDate: true, cpf: true, cnpj: true, avatarUrl: true },
+      select: { fullName: true, birthDate: true, cpf: true, cnpj: true, avatarUrl: true, bankHolder: true, bankInstitution: true, bankAgency: true, bankAccount: true, pixKey: true },
     });
     return NextResponse.json(updated);
   } catch (err) {

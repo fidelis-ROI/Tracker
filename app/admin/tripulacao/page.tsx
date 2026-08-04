@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NpsLabel } from "@/components/nps/NpsLabel";
-import { Plus, Pencil, Lock, KeyRound, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Plus, Pencil, Lock, KeyRound, ChevronDown, ChevronUp, Trash2, Landmark } from "lucide-react";
+import { roleLabel } from "@/lib/roles";
 
 interface Collaborator {
   id: string;
@@ -25,6 +26,11 @@ interface Collaborator {
   birthDate?: string | null;
   cpf?: string | null;
   cnpj?: string | null;
+  bankHolder?: string | null;
+  bankInstitution?: string | null;
+  bankAgency?: string | null;
+  bankAccount?: string | null;
+  pixKey?: string | null;
   adminUser?: { email: string; role?: string } | null;
   clientPortfolio?: { client: { id: string; name: string } }[];
 }
@@ -39,7 +45,7 @@ interface Client { id: string; name: string; }
 
 const schema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
-  role: z.enum(["gestor_trafego", "designer"]),
+  role: z.enum(["gestor_trafego", "lider", "designer"]),
   active: z.boolean(),
   salary: z.string().optional(),
   variable: z.string().optional(),
@@ -47,6 +53,7 @@ const schema = z.object({
   createLogin: z.boolean().optional(),
   loginEmail: z.string().optional(),
   loginPassword: z.string().optional(),
+  loginGoogle: z.boolean().optional(),
   loginRole: z.enum(["operator", "admin"]).optional(),
   clientIds: z.array(z.string()).optional(),
 });
@@ -85,6 +92,7 @@ export default function OperadoresPage() {
   const createLoginValue = watch("createLogin");
   const roleValue = watch("role");
   const loginRoleValue = watch("loginRole");
+  const loginGoogleValue = watch("loginGoogle");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -123,7 +131,7 @@ export default function OperadoresPage() {
   function openCreate() {
     setEditing(null);
     setSelectedClients([]);
-    reset({ name: "", role: "gestor_trafego", active: true, salary: "", variable: "", hireDate: "", createLogin: false, loginEmail: "", loginPassword: "", loginRole: "operator" });
+    reset({ name: "", role: "gestor_trafego", active: true, salary: "", variable: "", hireDate: "", createLogin: false, loginEmail: "", loginPassword: "", loginGoogle: false, loginRole: "operator" });
     setOpen(true);
   }
 
@@ -132,7 +140,7 @@ export default function OperadoresPage() {
     setSelectedClients(c.clientPortfolio?.map(cp => cp.client.id) ?? []);
     reset({
       name: c.name,
-      role: c.role as "gestor_trafego" | "designer",
+      role: c.role as "gestor_trafego" | "lider" | "designer",
       active: c.active,
       salary: c.salary?.toString() ?? "",
       variable: c.variable?.toString() ?? "",
@@ -140,6 +148,7 @@ export default function OperadoresPage() {
       createLogin: false,
       loginEmail: c.adminUser?.email ?? "",
       loginPassword: "",
+      loginGoogle: false,
       loginRole: (c.adminUser?.role as "operator" | "admin") ?? "operator",
     });
     setOpen(true);
@@ -167,10 +176,11 @@ export default function OperadoresPage() {
         payload.salary = data.salary ? parseFloat(data.salary) : null;
         payload.variable = data.variable ? parseFloat(data.variable) : null;
         payload.hireDate = data.hireDate || null;
-        if (data.createLogin && data.loginEmail && data.loginPassword) {
+        if (data.createLogin && data.loginEmail && (data.loginPassword || data.loginGoogle)) {
           payload.createLogin = true;
           payload.loginEmail = data.loginEmail;
-          payload.loginPassword = data.loginPassword;
+          if (data.loginGoogle) payload.loginGoogle = true;
+          else payload.loginPassword = data.loginPassword;
           payload.loginRole = data.loginRole ?? "operator";
         } else if (editing && data.loginEmail) {
           payload.loginEmail = data.loginEmail;
@@ -214,6 +224,7 @@ export default function OperadoresPage() {
   }
 
   const gestores = collabs.filter((c) => c.role === "gestor_trafego");
+  const lideres = collabs.filter((c) => c.role === "lider");
   const designers = collabs.filter((c) => c.role === "designer");
 
   function CollabSection({ items, title }: { items: CollabWithStats[]; title: string }) {
@@ -246,7 +257,7 @@ export default function OperadoresPage() {
                         )}
                       </div>
                       <p className="text-sm text-dim">
-                        {c.role === "gestor_trafego" ? "Gestor de Tráfego" : "Designer"}
+                        {roleLabel(c.role)}
                         {c.hireDate && <><span className="mx-1">·</span>{daysAtCompany(c.hireDate)}</>}
                       </p>
                     </div>
@@ -325,6 +336,35 @@ export default function OperadoresPage() {
                             </div>
                           </div>
                         </div>
+                        <div className="col-span-2 border-t border-line pt-3 mt-1">
+                          <div className="flex items-center gap-1.5 mb-2.5">
+                            <Landmark size={13} className="text-brand-soft" />
+                            <p className="text-[11px] font-bold text-dim uppercase tracking-widest">Conta bancária</p>
+                            <span className="text-[11px] text-faint normal-case font-normal tracking-normal">· vinculada ao CNPJ</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs text-dim mb-1">Nome do titular</p>
+                              <p className="text-ink text-sm">{c.bankHolder || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-dim mb-1">Instituição</p>
+                              <p className="text-ink text-sm">{c.bankInstitution || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-dim mb-1">Agência</p>
+                              <p className="text-ink text-sm">{c.bankAgency || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-dim mb-1">Conta</p>
+                              <p className="text-ink text-sm">{c.bankAccount || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                            <div className="col-span-2">
+                              <p className="text-xs text-dim mb-1">Chave PIX</p>
+                              <p className="text-ink text-sm break-all">{c.pixKey || <span className="text-dim/40">—</span>}</p>
+                            </div>
+                          </div>
+                        </div>
                       </>
                     )}
                     <div className="col-span-2">
@@ -368,6 +408,7 @@ export default function OperadoresPage() {
       ) : (
         <>
           <CollabSection items={gestores} title="Gestores de Tráfego" />
+          {lideres.length > 0 && <CollabSection items={lideres} title="Líderes" />}
           <CollabSection items={designers} title="Designers" />
         </>
       )}
@@ -401,12 +442,13 @@ export default function OperadoresPage() {
                 className="w-full bg-canvas border border-line rounded-lg px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
               >
                 <option value="gestor_trafego">Gestor de Tráfego</option>
+                <option value="lider">Líder</option>
                 <option value="designer">Designer</option>
               </select>
             </div>
 
             {/* Clientes da carteira */}
-            {roleValue === "gestor_trafego" && clients.length > 0 && (
+            {(roleValue === "gestor_trafego" || roleValue === "lider") && clients.length > 0 && (
               <div>
                 <label className="text-xs text-dim block mb-2">Carteira de clientes</label>
                 <div className="flex flex-wrap gap-2">
@@ -415,7 +457,7 @@ export default function OperadoresPage() {
                       type="button"
                       key={cl.id}
                       onClick={() => toggleClient(cl.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedClients.includes(cl.id) ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs border transition-all ${selectedClients.includes(cl.id) ? "bg-[#5B21F0] border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
                     >
                       {cl.name}
                     </button>
@@ -482,7 +524,7 @@ export default function OperadoresPage() {
                               type="button"
                               key={val}
                               onClick={() => setValue("loginRole", val)}
-                              className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${loginRoleValue === val ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
+                              className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${loginRoleValue === val ? "bg-[#5B21F0] border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
                             >
                               {lbl}
                             </button>
@@ -524,19 +566,28 @@ export default function OperadoresPage() {
                             <input
                               {...register("loginEmail")}
                               type="email"
-                              placeholder="operador@roi.com.br"
+                              placeholder={loginGoogleValue ? "pessoa@roipartners.com.br" : "operador@roi.com.br"}
                               className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
                             />
                           </div>
-                          <div>
-                            <label className="text-xs text-dim block mb-1">Senha inicial</label>
-                            <input
-                              {...register("loginPassword")}
-                              type="password"
-                              placeholder="••••••••"
-                              className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
-                            />
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-ink">Login pelo Google</p>
+                              <p className="text-[11px] text-dim">Sem senha · só e-mail @roipartners.com.br</p>
+                            </div>
+                            <Switch checked={!!loginGoogleValue} onCheckedChange={(v) => setValue("loginGoogle", v)} className="data-checked:!bg-[#5B21F0]" />
                           </div>
+                          {!loginGoogleValue && (
+                            <div>
+                              <label className="text-xs text-dim block mb-1">Senha inicial</label>
+                              <input
+                                {...register("loginPassword")}
+                                type="password"
+                                placeholder="••••••••"
+                                className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                              />
+                            </div>
+                          )}
                           <div>
                             <label className="text-xs text-dim block mb-1.5">Nível de acesso</label>
                             <div className="grid grid-cols-2 gap-2">
@@ -545,7 +596,7 @@ export default function OperadoresPage() {
                                   type="button"
                                   key={val}
                                   onClick={() => setValue("loginRole", val)}
-                                  className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${loginRoleValue === val ? "bg-[#5B21F0]/20 border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
+                                  className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${loginRoleValue === val ? "bg-[#5B21F0] border-[#5B21F0] text-white" : "bg-canvas border-line text-dim hover:border-[#5B21F0]/50"}`}
                                 >
                                   {lbl}
                                 </button>
