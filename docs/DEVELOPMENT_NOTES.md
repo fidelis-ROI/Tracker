@@ -288,3 +288,17 @@ Uma migration combinada `20260730000000_client_links_personal_data` (aplicada em
 - **Links por cliente** (`ClientLink`, N por cliente): admin gerencia no modal de cliente (`app/admin/clientes/page.tsx`, seção "Links úteis", linhas label+url dinâmicas, padrão replace-all no POST/PUT de `/api/admin/clients`). Operador vê os links (chips externos) no card expandido do cliente em `/operador/clientes` (incluídos em `/api/operador/portfolio`). Seed inicial: **Logo COPAUTO** e **Logo CONVEX** (ids fixos `seed_copauto_logo`/`seed_convex_logo`, inseridos por `INSERT ... SELECT ... WHERE name ILIKE` + `ON CONFLICT DO NOTHING`, idempotente).
 - **Dados pessoais + avatar** (campos em `Collaborator`: `fullName`, `birthDate`, `cpf`, `cnpj`, `avatarUrl`): a própria pessoa preenche no Painel Pessoal (`/operador/perfil`, card "Meus dados pessoais" + upload de avatar data-URL, cap 900 KB) via `PUT /api/operador/profile` (self-edit pelo `collaboratorId` da sessão). **Visível ao admin** em Operadores (`/admin/tripulacao`): avatar no header da linha + bloco "Dados pessoais" no expandido (só admin lê CPF/CNPJ/nascimento — retornados condicionalmente na API).
 - **Nível de acesso na aba Operadores**: seletor Operador/Administrador na seção de login do modal de operador — define `AdminUser.role` (`loginRole` em `/api/admin/collaborators` POST/PUT). Cria administradores. Badge "Admin" na linha de quem tem login admin. `Collaborator.role` (gestor/designer) continua separado do nível de acesso.
+
+---
+
+## 13. Notificações (atribuição + menções), sino, Início = hoje (2026-08-04)
+
+Migration `20260731000000_notifications` (aplicada em prod via Console do Railway; `npx prisma migrate deploy`). Novo modelo `Notification` (destinatário = `Collaborator`, `type` = `assigned` | `mention`, snapshot `cardCode`/`cardTitle`/`boardId`, `context` = `comment`|`description`, `read`).
+
+- **Gatilhos** (`lib/notifications.ts` → `notify()`, best-effort, nunca notifica o próprio autor):
+  - **Atribuição**: ao criar card com responsável (`POST /api/admin/cards`) e ao trocar `assigneeId`/`coAssigneeId` (`PATCH /api/admin/cards/[id]`).
+  - **Menções**: o cliente envia `mentions: string[]` (ids escolhidos no autocomplete) — comentários (`POST .../comments`) e descrição (`PATCH` do card). Não há parsing de texto no servidor; a descrição só notifica os ids escolhidos naquela edição (sem spam no autosave por blur).
+- **Autocomplete de menção**: `components/boards/MentionTextarea.tsx` — textarea com dropdown `@pessoa` sobre `collaborators`; ao escolher insere `@Nome ` e registra o id. Usado no box de comentário e na descrição do `CardPanel`.
+- **Sino**: `components/NotificationBell.tsx` no topo das duas sidebars (`boardsBase` = `/admin/boards` ou `/operador/boards`). Badge de não-lidas, dropdown clicável, polling 30s. Clicar marca como lida e navega para `${boardsBase}/${boardId}?card=${cardId}`. API: `GET /api/notifications` (lista + `unreadCount`, destinatário = `session.user.collaboratorId`) e `PATCH` (`{id}` ou `{all:true}`) — usa `updateMany` com filtro do dono. Admin sem `Collaborator` vinculado não recebe notificações.
+- **Deep-link**: `BoardView` lê `?card=` de `window.location` (sem `useSearchParams`, evita exigência de Suspense) e abre o `CardPanel`.
+- **Início = hoje**: `POST /api/admin/cards` grava `startDate: new Date()` por padrão (editável depois no painel).
