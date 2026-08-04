@@ -61,6 +61,8 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
+      // `account` só vem preenchido no login inicial (Google); `user` só no login
+      // por credenciais. Usamos isso para registrar o último acesso uma vez por login.
       if (account?.provider === "google" && token.email) {
         const adminUser = await prisma.adminUser.findUnique({
           where: { email: token.email.toLowerCase().trim() },
@@ -70,6 +72,7 @@ export const authOptions: NextAuthOptions = {
           token.id = adminUser.id;
           token.role = adminUser.role;
           token.collaboratorId = adminUser.collaboratorId;
+          await prisma.adminUser.update({ where: { id: adminUser.id }, data: { lastLoginAt: new Date() } }).catch(() => {});
         }
         return token;
       }
@@ -78,6 +81,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role ?? "admin";
         token.collaboratorId = user.collaboratorId;
+        if (user.id) await prisma.adminUser.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } }).catch(() => {});
       }
       return token;
     },

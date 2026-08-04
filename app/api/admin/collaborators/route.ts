@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       hireDate: true,
       avatarUrl: true,
       ...(isAdmin ? { salary: true, variable: true, fullName: true, birthDate: true, cpf: true, cnpj: true, bankHolder: true, bankInstitution: true, bankAgency: true, bankAccount: true, pixKey: true } : {}),
-      adminUser: { select: { email: true, role: true } },
+      adminUser: { select: { email: true, role: true, lastLoginAt: true } },
       clientPortfolio: {
         select: { client: { select: { id: true, name: true, slug: true } } },
       },

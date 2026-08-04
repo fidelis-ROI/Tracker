@@ -1,0 +1,1 @@
+ALTER TABLE "AdminUser" ADD COLUMN "lastLoginAt" TIMESTAMP(3);

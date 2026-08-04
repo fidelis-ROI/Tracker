@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, AtSign, UserPlus, Check } from "lucide-react";
+import { Bell, AtSign, UserPlus, Check, UserCog } from "lucide-react";
 
 interface Notif {
   id: string;
@@ -40,6 +40,7 @@ export function NotificationBell({ boardsBase }: { boardsBase: string }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notif[]>([]);
   const [unread, setUnread] = useState(0);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
@@ -49,6 +50,7 @@ export function NotificationBell({ boardsBase }: { boardsBase: string }) {
       const data = await res.json();
       setItems(data.notifications ?? []);
       setUnread(data.unreadCount ?? 0);
+      setProfileIncomplete(!!data.profileIncomplete);
     } catch {
       /* silencioso */
     }
@@ -107,9 +109,9 @@ export function NotificationBell({ boardsBase }: { boardsBase: string }) {
         aria-label="Notificações"
       >
         <Bell size={19} />
-        {unread > 0 && (
+        {(unread > 0 || profileIncomplete) && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#5B21F0] text-white text-[10.5px] font-bold flex items-center justify-center border-2 border-canvas">
-            {unread > 9 ? "9+" : unread}
+            {unread > 0 ? (unread > 9 ? "9+" : unread) : "!"}
           </span>
         )}
       </button>
@@ -126,7 +128,23 @@ export function NotificationBell({ boardsBase }: { boardsBase: string }) {
           </div>
 
           <div className="max-h-[380px] overflow-y-auto">
-            {items.length === 0 ? (
+            {/* Notificação fixa: completar o perfil (não some até estar completo). */}
+            {profileIncomplete && (
+              <button
+                onClick={() => { setOpen(false); router.push("/operador/perfil"); }}
+                className="w-full text-left flex gap-3 px-4 py-3 border-b border-line transition-all hover:bg-surface-hover bg-warning/[0.08]"
+              >
+                <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-warning/20 text-warning">
+                  <UserCog size={15} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] text-ink font-semibold leading-snug">Complete seu perfil</p>
+                  <p className="text-[12px] text-dim leading-snug mt-0.5">Preencha seus dados pessoais e bancários (vinculados ao CNPJ).</p>
+                </div>
+                <span className="text-[10px] font-bold text-warning bg-warning/15 rounded px-1.5 py-0.5 self-start whitespace-nowrap">Pendente</span>
+              </button>
+            )}
+            {items.length === 0 && !profileIncomplete ? (
               <p className="px-4 py-8 text-center text-[13px] text-faint">Nenhuma notificação.</p>
             ) : (
               items.map((n) => (

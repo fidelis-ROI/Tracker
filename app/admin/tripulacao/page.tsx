@@ -31,7 +31,7 @@ interface Collaborator {
   bankAgency?: string | null;
   bankAccount?: string | null;
   pixKey?: string | null;
-  adminUser?: { email: string; role?: string } | null;
+  adminUser?: { email: string; role?: string; lastLoginAt?: string | null } | null;
   clientPortfolio?: { client: { id: string; name: string } }[];
 }
 
@@ -313,6 +313,18 @@ export default function OperadoresPage() {
                           <p className="text-xs text-dim mb-1">Data de entrada</p>
                           <p className="text-ink text-sm">
                             {c.hireDate ? new Date(c.hireDate).toLocaleDateString("pt-BR") : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-dim mb-1">Último acesso</p>
+                          <p className="text-ink text-sm">
+                            {!c.adminUser ? (
+                              <span className="text-dim/40">Sem acesso</span>
+                            ) : c.adminUser.lastLoginAt ? (
+                              new Date(c.adminUser.lastLoginAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                            ) : (
+                              <span className="text-dim/40">Nunca acessou</span>
+                            )}
                           </p>
                         </div>
                         <div className="col-span-2 border-t border-line pt-3 mt-1">
