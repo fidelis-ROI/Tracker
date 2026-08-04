@@ -313,3 +313,13 @@ Migration `20260804000000_bank_fields` (5 colunas em `Collaborator`) aplicada em
 - **Login pelo Google (sem senha)**: `AdminUser.password` é opcional; login Google exige apenas um `AdminUser` com o e-mail (`@roipartners.com.br`) já cadastrado. No modal de operador há um switch "Login pelo Google" que esconde o campo de senha; a API (`loginGoogle` em collaborators POST/PUT) cria o `AdminUser` com `password: null`. Vale para operador ou administrador (via `loginRole`).
 - **Cargo Líder**: `Collaborator.role` agora aceita `gestor_trafego | lider | designer`. Helper `lib/roles.ts` (`ROLE_LABELS`/`roleLabel`) centraliza os rótulos. Em `/admin/tripulacao`: opção no select, seção "Líderes", e a carteira de clientes aparece para gestor **e** líder. NPS/financeiro continuam filtrando só `gestor_trafego` (líder não entra no cálculo de NPS/comissão automaticamente).
 - **Conta bancária** (campos em `Collaborator`: `bankHolder`, `bankInstitution`, `bankAgency`, `bankAccount`, `pixKey`): editável pela pessoa no Painel Pessoal (card "Conta bancária" com aviso explícito **"a conta precisa estar vinculada ao CNPJ"**), salvo junto do resto via `PUT /api/operador/profile`. Visível ao admin no expandido de Operadores (bloco "Conta bancária · vinculada ao CNPJ", admin-only).
+
+---
+
+## 15. Último acesso, notificação fixa de perfil, admin master fidelis (2026-08-04)
+
+Migration `20260804100000_last_login` (`AdminUser.lastLoginAt`) aplicada em prod.
+
+- **Último acesso**: `AdminUser.lastLoginAt` atualizado no login (jwt callback de `lib/auth.ts` — `account` só vem no login Google, `user` só no login por credenciais, então grava 1x por login). Exibido em `/admin/tripulacao` no expandido: "Último acesso" (data/hora) · "Nunca acessou" · "Sem acesso". Incluído em `adminUser` no GET de collaborators.
+- **Notificação fixa "Complete seu perfil"**: `GET /api/notifications` calcula `profileIncomplete` (campos obrigatórios: fullName, birthDate, cpf, cnpj + bancários bankHolder/bankInstitution/bankAgency/bankAccount/pixKey). O `NotificationBell` mostra um item fixo no topo (âmbar, "Pendente") que **não some** e não pode ser marcado como lido — só desaparece quando o perfil fica completo. Clicar leva a `/operador/perfil`. O badge do sino acende (mostra "!" se não houver outras não-lidas).
+- **Admin master fidelis**: `AdminUser` `fidelis@roipartners.com.br` (role `admin`, login via Google, sem senha) já existia com `collaboratorId` nulo; foi **vinculado ao Collaborator "Rodrigo Fidelis"** (`cms819q7y00210pqndhl3jugn`) via `UPDATE` no console do Railway. Operações de dados em prod feitas com `node -e` + `pg` usando query **parametrizada** (`$1` escapado como `\$1` no shell, senão o bash expande para vazio).
