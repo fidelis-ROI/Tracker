@@ -82,6 +82,81 @@ function ObservationBox({ clientId }: { clientId: string }) {
   );
 }
 
+const infoInput = "w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]";
+
+// Informações do cliente — visíveis e editáveis por toda a equipe da carteira.
+function ClientInfoBox({ client, onSaved }: { client: ClientNps; onSaved: (patch: Partial<ClientNps>) => void }) {
+  const [drive, setDrive] = useState(client.driveUrl ?? "");
+  const [logo1, setLogo1] = useState(client.logoUrl1 ?? "");
+  const [logo2, setLogo2] = useState(client.logoUrl2 ?? "");
+  const [logo3, setLogo3] = useState(client.logoUrl3 ?? "");
+  const [info, setInfo] = useState(client.usefulInfo ?? "");
+  const [notes, setNotes] = useState(client.notes ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const dirty =
+    drive !== (client.driveUrl ?? "") || logo1 !== (client.logoUrl1 ?? "") ||
+    logo2 !== (client.logoUrl2 ?? "") || logo3 !== (client.logoUrl3 ?? "") ||
+    info !== (client.usefulInfo ?? "") || notes !== (client.notes ?? "");
+
+  async function save() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/operador/client-info", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: client.id, driveUrl: drive, logoUrl1: logo1, logoUrl2: logo2, logoUrl3: logo3, usefulInfo: info, notes }),
+      });
+      if (!res.ok) throw new Error();
+      const d = await res.json();
+      onSaved({ driveUrl: d.driveUrl, logoUrl1: d.logoUrl1, logoUrl2: d.logoUrl2, logoUrl3: d.logoUrl3, usefulInfo: d.usefulInfo, notes: d.notes });
+      toast.success("Informações do cliente salvas.");
+    } catch {
+      toast.error("Erro ao salvar as informações.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 mb-3">
+        <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase">Informações do cliente</span>
+        <span className="text-[11px] text-faint">· visível para toda a equipe da carteira</span>
+      </div>
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs text-dim block mb-1">Link do Drive</label>
+          <input value={drive} onChange={(e) => setDrive(e.target.value)} placeholder="https://drive.google.com/…" className={infoInput} />
+        </div>
+        <div>
+          <label className="text-xs text-dim block mb-1">Links de logos <span className="opacity-60">(3 slots)</span></label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input value={logo1} onChange={(e) => setLogo1(e.target.value)} placeholder="Logo 1 — https://…" className={infoInput} />
+            <input value={logo2} onChange={(e) => setLogo2(e.target.value)} placeholder="Logo 2 — https://…" className={infoInput} />
+            <input value={logo3} onChange={(e) => setLogo3(e.target.value)} placeholder="Logo 3 — https://…" className={infoInput} />
+          </div>
+        </div>
+        <div>
+          <label className="text-xs text-dim block mb-1">Informações úteis</label>
+          <textarea value={info} onChange={(e) => setInfo(e.target.value)} rows={3} placeholder="Acessos, contatos, particularidades do cliente…" className={`${infoInput} resize-y`} />
+        </div>
+        <div>
+          <label className="text-xs text-dim block mb-1">Observações</label>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Observações gerais do cliente…" className={`${infoInput} resize-y`} />
+        </div>
+      </div>
+      {dirty && (
+        <div className="flex justify-end mt-2.5">
+          <button onClick={save} disabled={saving} className="bg-[#5B21F0] hover:bg-[#4A1AD0] disabled:opacity-60 text-white text-[13px] font-semibold px-4 py-1.5 rounded-lg transition-all">
+            {saving ? "Salvando…" : "Salvar informações"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface NpsResponse {
   id: string;
   month: string;
@@ -176,6 +251,10 @@ export default function OperadorClientesPage() {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+  }
+
+  function patchClient(id: string, patch: Partial<ClientNps>) {
+    setPortfolio(prev => prev.map(c => (c.id === id ? { ...c, ...patch } : c)));
   }
 
   const byClient = new Map<string, typeof responses>();
@@ -273,41 +352,9 @@ export default function OperadorClientesPage() {
                           </div>
                         </div>
                       )}
-                      {(client.driveUrl || client.logoUrl1 || client.logoUrl2 || client.logoUrl3 || client.usefulInfo || client.notes) && (
-                        <div className="px-[26px] py-4 border-b border-line space-y-4">
-                          {(client.driveUrl || client.logoUrl1 || client.logoUrl2 || client.logoUrl3) && (
-                            <div>
-                              <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase block mb-2.5">Materiais</span>
-                              <div className="flex flex-wrap gap-2">
-                                {client.driveUrl && (
-                                  <a href={client.driveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-surface-hover hover:bg-surface border border-line text-ink text-[13px] font-medium px-3 py-1.5 rounded-lg transition-all">
-                                    <ExternalLink size={13} className="text-brand" /> Drive
-                                  </a>
-                                )}
-                                {[client.logoUrl1, client.logoUrl2, client.logoUrl3].map((u, i) =>
-                                  u ? (
-                                    <a key={i} href={u} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-surface-hover hover:bg-surface border border-line text-ink text-[13px] font-medium px-3 py-1.5 rounded-lg transition-all">
-                                      <ExternalLink size={13} className="text-brand" /> Logo {i + 1}
-                                    </a>
-                                  ) : null,
-                                )}
-                              </div>
-                            </div>
-                          )}
-                          {client.usefulInfo && (
-                            <div>
-                              <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase block mb-1.5">Informações úteis</span>
-                              <p className="text-[13.5px] text-ink whitespace-pre-wrap leading-relaxed">{client.usefulInfo}</p>
-                            </div>
-                          )}
-                          {client.notes && (
-                            <div>
-                              <span className="text-[12px] font-bold tracking-[0.04em] text-dim uppercase block mb-1.5">Observações</span>
-                              <p className="text-[13.5px] text-ink whitespace-pre-wrap leading-relaxed">{client.notes}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      <div className="px-[26px] py-4 border-b border-line">
+                        <ClientInfoBox client={client} onSaved={(patch) => patchClient(client.id, patch)} />
+                      </div>
                       <div className="px-[26px] py-4 border-b border-line">
                         <ObservationBox clientId={client.id} />
                       </div>
