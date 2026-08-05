@@ -332,3 +332,13 @@ Migration `20260804200000_client_info_fields` aplicada em prod.
 
 - **Rename**: "Painel Pessoal" → **"Perfil"** (nav da sidebar do operador + título da página `/operador/perfil`). Sem mudança de comportamento — cada um continua vendo/editando só o próprio perfil (admin vê todos).
 - **Campos por cliente** (scalars em `Client`, geridos pelo admin no modal de cliente, seção "Informações do cliente"): `driveUrl` (Link do Drive), `usefulInfo` (Informações úteis, textarea), `logoUrl1`/`logoUrl2`/`logoUrl3` (3 slots de logo), `notes` (Observações — **campo `notes`, não `observations`**, pois `Client.observations` já é a relação com `ClientObservation`). Salvos no POST/PUT de `/api/admin/clients`. Operador vê no card expandido de `/operador/clientes` (bloco "Materiais" com chips Drive/Logo 1-3 + "Informações úteis" + "Observações"), incluídos em `/api/operador/portfolio`. Continua existindo, separado, o "Minhas observações" privado por operador (`ClientObservation`).
+
+---
+
+## 17. Informações do cliente editáveis por operador/líder (2026-08-05)
+
+Sem migração (usa as colunas de `Client` da seção 16).
+
+- Operadores e líderes agora **veem e editam** os campos de informação do cliente (Drive, 3 logos, informações úteis, observações) — **restrito aos clientes da carteira deles**. Antes era só leitura (admin editava).
+- Novo endpoint `PUT /api/operador/client-info`: valida que o cliente está na carteira do solicitante (`clientOperator` com o `collaboratorId` da sessão) antes de atualizar; admin (role admin) faz bypass da checagem de carteira.
+- UI: `ClientInfoBox` (em `app/operador/clientes/page.tsx`) substituiu o bloco read-only no card expandido — inputs para Drive/logos + textareas para info/observações, botão "Salvar informações" aparece quando há mudança; `patchClient` atualiza o portfolio local após salvar. Admin continua editando pelo modal em `/admin/clientes`.
