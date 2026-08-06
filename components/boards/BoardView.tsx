@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CardPanel } from "@/components/boards/CardPanel";
@@ -65,6 +66,9 @@ function dueLabel(due: string | null) {
 }
 
 export function BoardView({ boardId, basePath }: { boardId: string; basePath: string }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [board, setBoard] = useState<BoardMeta | null>(null);
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
@@ -100,10 +104,11 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
   }, [load]);
 
   // Deep-link vindo de uma notificação: ?card=<id> abre o painel do card.
+  // Reage à mudança do parâmetro para abrir mesmo já estando numa página de board.
   useEffect(() => {
-    const c = new URLSearchParams(window.location.search).get("card");
+    const c = searchParams.get("card");
     if (c) setOpenCardId(c);
-  }, []);
+  }, [searchParams]);
 
   async function moveCard(cardId: string, status: string) {
     const card = cards.find((c) => c.id === cardId);
@@ -391,7 +396,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
           board={board}
           boardCards={cards.map((c) => ({ id: c.id, code: c.code, title: c.title }))}
           collaborators={collaborators}
-          onClose={() => setOpenCardId(null)}
+          onClose={() => { setOpenCardId(null); if (searchParams.get("card")) router.replace(pathname); }}
           onChanged={load}
           onOpenCard={(cid) => setOpenCardId(cid)}
           onTagCreated={(tag) => setBoard((b) => (b ? { ...b, tags: [...b.tags, tag] } : b))}
