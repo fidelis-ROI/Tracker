@@ -342,3 +342,11 @@ Sem migração (usa as colunas de `Client` da seção 16).
 - Operadores e líderes agora **veem e editam** os campos de informação do cliente (Drive, 3 logos, informações úteis, observações) — **restrito aos clientes da carteira deles**. Antes era só leitura (admin editava).
 - Novo endpoint `PUT /api/operador/client-info`: valida que o cliente está na carteira do solicitante (`clientOperator` com o `collaboratorId` da sessão) antes de atualizar; admin (role admin) faz bypass da checagem de carteira.
 - UI: `ClientInfoBox` (em `app/operador/clientes/page.tsx`) substituiu o bloco read-only no card expandido — inputs para Drive/logos + textareas para info/observações, botão "Salvar informações" aparece quando há mudança; `patchClient` atualiza o portfolio local após salvar. Admin continua editando pelo modal em `/admin/clientes`.
+
+---
+
+## 18. Fix: abrir card via notificação já estando num board (2026-08-05)
+
+Sem migração. `BoardView` (`components/boards/BoardView.tsx`) passou a ler o `?card=` via `useSearchParams()` num efeito reativo (`[searchParams]`) — antes lia `window.location.search` só na montagem, então clicar numa notificação estando já numa página de board não abria o card até recarregar. Ao fechar o painel, `router.replace(pathname)` limpa o `?card` (permite reabrir a mesma notificação). Pages `/…/boards/[id]` são dinâmicas, então `useSearchParams` builda sem exigir Suspense.
+
+Nota: o login admin master `fidelis@roipartners.com.br` continua fundido ao Collaborator "Rodrigo Fidelis" (`cms819q7y00210pqndhl3jugn`) — atribuições a esse colaborador geram Notification com esse `recipientId`, e o login Google carrega o mesmo `collaboratorId` na sessão, então as notificações chegam a ele.
