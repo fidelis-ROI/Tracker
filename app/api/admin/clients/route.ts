@@ -13,6 +13,8 @@ const createSchema = z.object({
   ticket: z.number().nullable().optional(),
   contractDate: z.string().nullable().optional(),
   services: z.array(z.string()).nullable().optional(),
+  setupFee: z.number().nullable().optional(),
+  setupInstallments: z.number().int().min(1).nullable().optional(),
   operatorIds: z.array(z.string()).optional(),
   links: z.array(z.object({ label: z.string().min(1), url: z.string().min(1) })).optional(),
   driveUrl: z.string().nullable().optional(),
@@ -46,7 +48,7 @@ export async function GET(req: NextRequest) {
       logoUrl2: true,
       logoUrl3: true,
       notes: true,
-      ...(isAdmin ? { ticket: true, contractDate: true, services: true } : {}),
+      ...(isAdmin ? { ticket: true, contractDate: true, services: true, setupFee: true, setupInstallments: true } : {}),
       operators: {
         select: {
           collaborator: { select: { id: true, name: true } },
@@ -87,6 +89,8 @@ export async function POST(req: NextRequest) {
         ticket: rest.ticket,
         contractDate: rest.contractDate ? new Date(rest.contractDate) : undefined,
         services: rest.services ? JSON.stringify(rest.services) : undefined,
+        setupFee: rest.setupFee ?? undefined,
+        setupInstallments: rest.setupInstallments ?? undefined,
         driveUrl: rest.driveUrl ?? undefined,
         usefulInfo: rest.usefulInfo ?? undefined,
         logoUrl1: rest.logoUrl1 ?? undefined,

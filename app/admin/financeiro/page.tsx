@@ -23,6 +23,12 @@ interface FinanceData {
   clients: ClientFinance[];
   mrrHistory: { month: string; label: string; value: number }[];
   projectionMonths: number;
+  setupTotal: number; setupReceived: number; setupPending: number; setupThisMonth: number;
+  setups: SetupEntry[];
+}
+interface SetupEntry {
+  id: string; name: string; total: number; installments: number; installmentValue: number;
+  paidInstallments: number; remainingInstallments: number; received: number; dueThisMonth: number;
 }
 
 function fmtBRL(v: number) {
@@ -170,6 +176,51 @@ export default function FinanceiroPage() {
               </div>
             ))}
           </div>
+
+          {/* Setup */}
+          {data.setups.length > 0 && (
+            <>
+              <SectionTitle hint="Pagamentos de setup (valor único, parcelado a partir da contratação)">Setup</SectionTitle>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                <StatCard icon={HandCoins} label="Setup contratado" value={fmtBRL(data.setupTotal)} tone="brand"
+                  sub={`${data.setups.length} cliente${data.setups.length !== 1 ? "s" : ""} com setup`} />
+                <StatCard icon={Wallet} label="Setup recebido" value={fmtBRL(data.setupReceived)} tone="success"
+                  sub="Parcelas já vencidas" />
+                <StatCard icon={Clock} label="Setup a receber" value={fmtBRL(data.setupPending)}
+                  tone={data.setupPending > 0 ? "warning" : "success"} sub="Parcelas futuras" />
+                <StatCard icon={Receipt} label="Setup no mês" value={fmtBRL(data.setupThisMonth)}
+                  sub="Parcelas que caem este mês" />
+              </div>
+              <div className="bg-surface border border-line rounded-2xl overflow-hidden mb-9">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-line">
+                        {["CLIENTE", "VALOR", "PARCELAS", "VALOR/PARCELA", "RECEBIDO", "A RECEBER"].map((h) => (
+                          <th key={h} className="px-6 py-3 text-[11px] font-bold text-dim uppercase tracking-widest whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.setups.map((s) => (
+                        <tr key={s.id} className="border-b border-line last:border-0">
+                          <td className="px-6 py-3.5 text-[14.5px] font-semibold text-ink whitespace-nowrap">{s.name}</td>
+                          <td className="px-6 py-3.5 text-[14px] text-ink-soft whitespace-nowrap">{fmtBRL(s.total)}</td>
+                          <td className="px-6 py-3.5 text-[13.5px] text-dim whitespace-nowrap">
+                            {s.installments}x
+                            <span className="text-faint"> · {s.paidInstallments}/{s.installments} pagas</span>
+                          </td>
+                          <td className="px-6 py-3.5 text-[14px] text-ink-soft whitespace-nowrap">{fmtBRL(s.installmentValue)}</td>
+                          <td className="px-6 py-3.5 text-[14px] font-bold text-success whitespace-nowrap">{fmtBRL(s.received)}</td>
+                          <td className="px-6 py-3.5 text-[14px] text-warning whitespace-nowrap">{s.remainingInstallments > 0 ? fmtBRL(s.total - s.received) : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Evolução do MRR */}
           <SectionTitle hint="Últimos 12 meses">Evolução do MRR</SectionTitle>

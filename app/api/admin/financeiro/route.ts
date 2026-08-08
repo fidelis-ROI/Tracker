@@ -49,6 +49,8 @@ export async function GET() {
         active: true,
         ticket: true,
         contractDate: true,
+        setupFee: true,
+        setupInstallments: true,
         brand: true,
         responses: { select: { trafegoScore: true } },
         operators: { select: { collaborator: { select: { id: true, name: true, role: true } } } },
@@ -114,6 +116,36 @@ export async function GET() {
 
   const inactiveCount = perClient.filter((c) => !c.active).length;
 
+  // Pagamentos de setup (valor único, opcionalmente parcelado a partir da contratação).
+  const setups = clients
+    .filter((c) => c.setupFee != null && c.setupFee > 0)
+    .map((c) => {
+      const total = c.setupFee!;
+      const installments = c.setupInstallments && c.setupInstallments > 0 ? c.setupInstallments : 1;
+      const installmentValue = total / installments;
+      // Parcelas já decorridas (a 1ª cai no mês da contratação). Sem data → considera à vista, tudo recebido.
+      const monthsSince = c.contractDate ? monthsBetween(c.contractDate, now) : installments - 1;
+      const paidInstallments = Math.min(installments, monthsSince + 1);
+      const dueThisMonth = monthsSince >= 0 && monthsSince < installments ? installmentValue : 0;
+      return {
+        id: c.id,
+        name: c.name,
+        total,
+        installments,
+        installmentValue,
+        paidInstallments,
+        remainingInstallments: installments - paidInstallments,
+        received: installmentValue * paidInstallments,
+        dueThisMonth,
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+
+  const setupTotal = setups.reduce((s, x) => s + x.total, 0);
+  const setupReceived = setups.reduce((s, x) => s + x.received, 0);
+  const setupPending = Math.max(0, setupTotal - setupReceived);
+  const setupThisMonth = setups.reduce((s, x) => s + x.dueThisMonth, 0);
+
   // Custo da equipe e margem bruta.
   const teamCost = collaborators.reduce((s, c) => s + (c.salary ?? 0) + (c.variable ?? 0), 0);
   const grossMargin = mrr - teamCost;
@@ -177,6 +209,11 @@ export async function GET() {
     brandSplit,
     portfolio,
     unassignedMrr,
+    setupTotal,
+    setupReceived,
+    setupPending,
+    setupThisMonth,
+    setups,
     clients: active
       .map((c) => ({
         id: c.id,

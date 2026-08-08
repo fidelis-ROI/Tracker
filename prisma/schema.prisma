@@ -18,6 +18,8 @@ model Client {
   ticket        Float?           // Ticket mensal (R$)
   contractDate  DateTime?        // Data de contratação
   services      String?          // JSON: ["Tráfego", "Criativos", ...]
+  setupFee      Float?           // Pagamento de setup (valor total, R$)
+  setupInstallments Int?         // Parcelamento do setup (nº de parcelas)
   // Informações do cliente (gerenciadas pelo admin, visíveis para a carteira)
   driveUrl      String?          // Link da pasta do Drive
   usefulInfo    String?          // Informações úteis (texto livre)

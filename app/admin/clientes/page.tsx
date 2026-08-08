@@ -22,6 +22,8 @@ interface Client {
   ticket?: number | null;
   contractDate?: string | null;
   services?: string | null;
+  setupFee?: number | null;
+  setupInstallments?: number | null;
   operators?: { id: string; name: string }[];
   links?: { id: string; label: string; url: string }[];
   driveUrl?: string | null;
@@ -44,6 +46,8 @@ const schema = z.object({
   brand: z.enum(["roi", "nitroads"]),
   ticket: z.string().optional(),
   contractDate: z.string().optional(),
+  setupFee: z.string().optional(),
+  setupInstallments: z.string().optional(),
   operatorIds: z.array(z.string()).optional(),
   driveUrl: z.string().optional(),
   usefulInfo: z.string().optional(),
@@ -128,7 +132,7 @@ export default function ClientesPage() {
     setSelectedServices([]);
     setCustomService("");
     setLinks([]);
-    reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "", driveUrl: "", usefulInfo: "", logoUrl1: "", logoUrl2: "", logoUrl3: "", notes: "" });
+    reset({ name: "", slug: "", hasDesigner: true, active: true, brand: "roi", ticket: "", contractDate: "", setupFee: "", setupInstallments: "", driveUrl: "", usefulInfo: "", logoUrl1: "", logoUrl2: "", logoUrl3: "", notes: "" });
     setOpen(true);
   }
 
@@ -147,6 +151,8 @@ export default function ClientesPage() {
       brand: client.brand,
       ticket: client.ticket?.toString() ?? "",
       contractDate: client.contractDate ? client.contractDate.slice(0, 10) : "",
+      setupFee: client.setupFee?.toString() ?? "",
+      setupInstallments: client.setupInstallments?.toString() ?? "",
       driveUrl: client.driveUrl ?? "",
       usefulInfo: client.usefulInfo ?? "",
       logoUrl1: client.logoUrl1 ?? "",
@@ -187,6 +193,8 @@ export default function ClientesPage() {
       if (isAdmin) {
         payload.ticket = data.ticket ? parseFloat(data.ticket) : null;
         payload.contractDate = data.contractDate || null;
+        payload.setupFee = data.setupFee ? parseFloat(data.setupFee) : null;
+        payload.setupInstallments = data.setupInstallments ? parseInt(data.setupInstallments, 10) : null;
         payload.services = selectedServices.length ? selectedServices : null;
         payload.links = links.map(l => ({ label: l.label.trim(), url: l.url.trim() })).filter(l => l.label && l.url);
       }
@@ -491,6 +499,28 @@ export default function ClientesPage() {
                         className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] [color-scheme:dark]"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-dim block mb-1">Pagamento de Setup <span className="opacity-60">(valor único, opcional)</span></label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        {...register("setupFee")}
+                        type="number"
+                        step="0.01"
+                        placeholder="Valor do setup (R$)"
+                        className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                      />
+                      <input
+                        {...register("setupInstallments")}
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="Parcelas (ex: 3)"
+                        className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink placeholder:text-dim/50 focus:outline-none focus:ring-2 focus:ring-[#7C1EFB]"
+                      />
+                    </div>
+                    <p className="text-[11px] text-faint mt-1">As parcelas são contadas a partir da data de contratação e entram na visão financeira.</p>
                   </div>
 
                   <div>

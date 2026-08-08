@@ -13,6 +13,8 @@ const updateSchema = z.object({
   ticket: z.number().nullable().optional(),
   contractDate: z.string().nullable().optional(),
   services: z.array(z.string()).nullable().optional(),
+  setupFee: z.number().nullable().optional(),
+  setupInstallments: z.number().int().min(1).nullable().optional(),
   operatorIds: z.array(z.string()).optional(), // IDs dos operadores atribuídos
   links: z.array(z.object({ label: z.string().min(1), url: z.string().min(1) })).optional(),
   driveUrl: z.string().nullable().optional(),

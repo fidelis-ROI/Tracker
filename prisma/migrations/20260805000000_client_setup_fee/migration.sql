@@ -1,0 +1,2 @@
+ALTER TABLE "Client" ADD COLUMN "setupFee" DOUBLE PRECISION;
+ALTER TABLE "Client" ADD COLUMN "setupInstallments" INTEGER;
