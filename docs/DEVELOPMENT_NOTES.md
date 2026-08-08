@@ -350,3 +350,12 @@ Sem migração (usa as colunas de `Client` da seção 16).
 Sem migração. `BoardView` (`components/boards/BoardView.tsx`) passou a ler o `?card=` via `useSearchParams()` num efeito reativo (`[searchParams]`) — antes lia `window.location.search` só na montagem, então clicar numa notificação estando já numa página de board não abria o card até recarregar. Ao fechar o painel, `router.replace(pathname)` limpa o `?card` (permite reabrir a mesma notificação). Pages `/…/boards/[id]` são dinâmicas, então `useSearchParams` builda sem exigir Suspense.
 
 Nota: o login admin master `fidelis@roipartners.com.br` continua fundido ao Collaborator "Rodrigo Fidelis" (`cms819q7y00210pqndhl3jugn`) — atribuições a esse colaborador geram Notification com esse `recipientId`, e o login Google carrega o mesmo `collaboratorId` na sessão, então as notificações chegam a ele.
+
+---
+
+## 19. Pagamento de Setup por cliente + visão financeira (2026-08-05)
+
+Migration `20260805000000_client_setup_fee` (colunas `Client.setupFee` Float?, `Client.setupInstallments` Int?).
+
+- **Cliente (admin)**: no modal de cliente, seção "Dados Administrativos", novo campo **Pagamento de Setup** — valor (`setupFee`) + parcelas (`setupInstallments`). Salvo no POST/PUT de `/api/admin/clients` (admin-only, junto de ticket/contrato).
+- **Financeiro** (`/api/admin/financeiro` + `/admin/financeiro`): calcula setup a partir dos clientes com `setupFee > 0`. 1ª parcela cai no mês da contratação; `paidInstallments = min(installments, mesesDesdeContrato+1)`; sem `contractDate` = considerado à vista (tudo recebido). Métricas: `setupTotal` (contratado), `setupReceived` (parcelas vencidas), `setupPending` (a receber), `setupThisMonth` (parcela do mês). Nova seção "Setup" com 4 StatCards + tabela "Setup por cliente" (valor, parcelas, valor/parcela, recebido, a receber). Só admin vê (a página Financeiro já é admin-only).
