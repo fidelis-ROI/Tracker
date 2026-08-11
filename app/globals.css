@@ -139,20 +139,54 @@
   --ring: var(--brand-ring);
 }
 
+/* Easing curves (Apple-style decelerate). Springs where the platform allows;
+   these bézier approximations keep transitions feeling physical, not linear. */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);      /* decelerate — arrivals */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);     /* symmetric — theme cross-fade */
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   background-color: var(--canvas);
   color: var(--ink);
+  font-optical-sizing: auto;   /* let the font adapt its shape to size */
 }
+
+/* Text selection uses the brand, not the browser default. */
+::selection { background: rgba(124, 30, 251, 0.28); color: #fff; }
 
 /* Smoothly cross-fade between themes. */
 body,
 body * {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 180ms;
-  transition-timing-function: ease;
+  transition-timing-function: var(--ease-in-out);
 }
-body *:where(button, a, [role="button"]) {
+/* Interactive elements settle a touch faster and with a decelerating curve. */
+body *:where(button, a, [role="button"], summary, label) {
   transition-property: background-color, border-color, color, fill, stroke, box-shadow, transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out);
+}
+
+/* Respond on press — instant, physical feedback the moment a control is touched
+   (Apple: latency is where directness "falls off a cliff"). Buttons only, so
+   nav links don't shift. Transform-only = compositor-friendly, no reflow. */
+body *:where(button, [role="button"]):not(:disabled):not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+}
+
+/* Keyboard focus: a clear, branded ring. Zero-specificity :where so a
+   component's own focus styles still win when it defines them. */
+:where(button, a, [role="button"], input, textarea, select):focus-visible {
+  outline: 2px solid var(--brand-ring);
+  outline-offset: 2px;
 }
 
 .font-titillium {
@@ -171,4 +205,28 @@ body *:where(button, a, [role="button"]) {
 @keyframes roi-fade-up {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   Accessibility — honor the user's system preferences (Apple skill §14).
+   Reduced motion keeps gentle cross-fades but drops travel/overshoot;
+   reduced transparency frosts glass to solid; more contrast strengthens lines.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  body, body *, body *::before, body *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 60ms !important;   /* keep color cross-fades, kill long motion */
+    scroll-behavior: auto !important;
+  }
+  body *:where(button, [role="button"]):active { transform: none !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+}
+
+@media (prefers-contrast: more) {
+  :root, .dark { --line: rgba(255, 255, 255, 0.4); --line-strong: rgba(255, 255, 255, 0.6); }
+  .light { --line: rgba(17, 20, 33, 0.42); --line-strong: rgba(17, 20, 33, 0.62); }
 }
