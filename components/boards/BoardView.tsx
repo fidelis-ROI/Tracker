@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CardPanel } from "@/components/boards/CardPanel";
 import type { KanbanCard, BoardMeta, Collaborator } from "@/components/boards/types";
 import { ArrowLeft, Plus, MessageSquare, Paperclip, CheckSquare, GitBranch, ListFilter, X, AlertTriangle, ChevronDown } from "lucide-react";
@@ -76,8 +77,17 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const [openCardId, setOpenCardId] = useState<string | null>(null);
-  const [adding, setAdding] = useState<string | null>(null);
-  const [newTitle, setNewTitle] = useState("");
+  // Novo card — todos os campos são obrigatórios.
+  const [newOpen, setNewOpen] = useState(false);
+  const [ncStatus, setNcStatus] = useState("backlog");
+  const [ncTitle, setNcTitle] = useState("");
+  const [ncDue, setNcDue] = useState("");
+  const [ncPriority, setNcPriority] = useState("");
+  const [ncTag, setNcTag] = useState("");
+  const [ncAssignee, setNcAssignee] = useState("");
+  const [ncNewTag, setNcNewTag] = useState("");
+  const [ncSaving, setNcSaving] = useState(false);
+  const [ncErr, setNcErr] = useState<Record<string, boolean>>({});
   const [fAssignee, setFAssignee] = useState("");
   const [fTag, setFTag] = useState("");
   const [fPriority, setFPriority] = useState("");
@@ -128,24 +138,66 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
     }
   }
 
-  async function quickAdd(status: string) {
-    const title = newTitle.trim();
-    if (!title) {
-      setAdding(null);
+  function openNew(status: string) {
+    setNcStatus(status);
+    setNcTitle(""); setNcDue(""); setNcPriority(""); setNcTag(""); setNcAssignee(""); setNcNewTag("");
+    setNcErr({});
+    setNewOpen(true);
+  }
+
+  async function createNcTag() {
+    const name = ncNewTag.trim();
+    if (!name || !board) return;
+    const palette = ["#7C1EFB", "#22C55E", "#F59E0B", "#1440FF", "#EC4899", "#06B6D4", "#EF4444", "#8A8FA3"];
+    const color = palette[board.tags.length % palette.length];
+    const res = await fetch(`/api/admin/boards/${boardId}/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, color }),
+    });
+    if (!res.ok) { toast.error("Erro ao criar tag."); return; }
+    const tag = await res.json();
+    setBoard((b) => (b ? { ...b, tags: [...b.tags, tag] } : b));
+    setNcTag(tag.id);
+    setNcNewTag("");
+    setNcErr((e) => ({ ...e, tag: false }));
+  }
+
+  async function submitNew() {
+    const err = {
+      title: !ncTitle.trim(),
+      due: !ncDue,
+      priority: !ncPriority,
+      tag: !ncTag,
+      assignee: !ncAssignee,
+    };
+    setNcErr(err);
+    if (Object.values(err).some(Boolean)) {
+      toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
+    setNcSaving(true);
     try {
       const res = await fetch("/api/admin/cards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ boardId, title, status }),
+        body: JSON.stringify({
+          boardId,
+          title: ncTitle.trim(),
+          status: ncStatus,
+          dueDate: `${ncDue}T23:59`,
+          priority: ncPriority,
+          tagId: ncTag,
+          assigneeId: ncAssignee,
+        }),
       });
       if (!res.ok) throw new Error();
-      setNewTitle("");
-      setAdding(null);
+      setNewOpen(false);
       load();
     } catch {
       toast.error("Erro ao criar o card.");
+    } finally {
+      setNcSaving(false);
     }
   }
 
@@ -245,10 +297,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                     <span className="text-[12px] text-faint">{colCards.length}</span>
                   </div>
                   <button
-                    onClick={() => {
-                      setAdding(col.key);
-                      setNewTitle("");
-                    }}
+                    onClick={() => openNew(col.key)}
                     className="text-dim hover:text-ink transition-all"
                     title="Adicionar card"
                   >
@@ -353,36 +402,12 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                     );
                   })}
 
-                  {adding === col.key ? (
-                    <div className="bg-raised border border-[#7C1EFB]/40 rounded-[11px] p-2.5">
-                      <textarea
-                        autoFocus
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            quickAdd(col.key);
-                          }
-                          if (e.key === "Escape") setAdding(null);
-                        }}
-                        onBlur={() => quickAdd(col.key)}
-                        placeholder="Título do card…"
-                        rows={2}
-                        className="w-full bg-transparent text-[14px] text-ink placeholder:text-faint resize-none focus:outline-none"
-                      />
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setAdding(col.key);
-                        setNewTitle("");
-                      }}
-                      className="w-full flex items-center gap-1.5 text-[13px] text-faint hover:text-ink px-2 py-2 rounded-lg hover:bg-surface transition-all"
-                    >
-                      <Plus size={14} /> Adicionar card
-                    </button>
-                  )}
+                  <button
+                    onClick={() => openNew(col.key)}
+                    className="w-full flex items-center gap-1.5 text-[13px] text-faint hover:text-ink px-2 py-2 rounded-lg hover:bg-surface transition-all"
+                  >
+                    <Plus size={14} /> Adicionar card
+                  </button>
                 </div>
               </div>
             );
@@ -402,6 +427,111 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
           onTagCreated={(tag) => setBoard((b) => (b ? { ...b, tags: [...b.tags, tag] } : b))}
         />
       )}
+
+      {/* Novo card — vencimento, prioridade, tag e responsável são obrigatórios. */}
+      <Dialog open={newOpen} onOpenChange={setNewOpen}>
+        <DialogContent className="bg-raised border-line text-ink max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-sans">Novo card</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            <div>
+              <label className="text-xs text-dim block mb-1">Título <span className="text-red-400">*</span></label>
+              <input
+                autoFocus
+                value={ncTitle}
+                onChange={(e) => { setNcTitle(e.target.value); if (e.target.value.trim()) setNcErr((x) => ({ ...x, title: false })); }}
+                placeholder="Título do card…"
+                className={`w-full bg-canvas border rounded-lg px-3 py-2 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] ${ncErr.title ? "border-red-400" : "border-line"}`}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-dim block mb-1">Vencimento <span className="text-red-400">*</span></label>
+                <input
+                  type="date"
+                  value={ncDue}
+                  onChange={(e) => { setNcDue(e.target.value); if (e.target.value) setNcErr((x) => ({ ...x, due: false })); }}
+                  className={`w-full bg-canvas border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] [color-scheme:dark] ${ncErr.due ? "border-red-400" : "border-line"}`}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-dim block mb-1">Prioridade <span className="text-red-400">*</span></label>
+                <select
+                  value={ncPriority}
+                  onChange={(e) => { setNcPriority(e.target.value); if (e.target.value) setNcErr((x) => ({ ...x, priority: false })); }}
+                  className={`w-full bg-canvas border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] ${ncErr.priority ? "border-red-400" : "border-line"}`}
+                >
+                  <option value="">Selecione…</option>
+                  {Object.entries(PRIORITY_META).map(([key, m]) => (
+                    <option key={key} value={key}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-dim block mb-1">Responsável <span className="text-red-400">*</span></label>
+              <select
+                value={ncAssignee}
+                onChange={(e) => { setNcAssignee(e.target.value); if (e.target.value) setNcErr((x) => ({ ...x, assignee: false })); }}
+                className={`w-full bg-canvas border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] ${ncErr.assignee ? "border-red-400" : "border-line"}`}
+              >
+                <option value="">Selecione…</option>
+                {collaborators.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-dim block mb-1">TAG <span className="text-red-400">*</span></label>
+              {board && board.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {board.tags.map((t) => (
+                    <button
+                      type="button"
+                      key={t.id}
+                      onClick={() => { setNcTag(t.id); setNcErr((x) => ({ ...x, tag: false })); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${ncTag === t.id ? "text-white border-transparent" : "bg-canvas border-line text-dim hover:text-ink"}`}
+                      style={ncTag === t.id ? { backgroundColor: t.color } : undefined}
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <input
+                  value={ncNewTag}
+                  onChange={(e) => setNcNewTag(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); createNcTag(); } }}
+                  placeholder="Criar nova tag…"
+                  className={`flex-1 bg-canvas border rounded-lg px-3 py-2 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] ${ncErr.tag ? "border-red-400" : "border-line"}`}
+                />
+                <button type="button" onClick={createNcTag} className="bg-surface-hover hover:bg-surface text-ink text-xs font-semibold px-3 py-2 rounded-lg transition-all">
+                  Criar tag
+                </button>
+              </div>
+            </div>
+
+            {Object.values(ncErr).some(Boolean) && (
+              <p className="text-[12px] text-red-400">Preencha todos os campos obrigatórios para criar o card.</p>
+            )}
+
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={() => setNewOpen(false)} className="flex-1 bg-surface-hover hover:bg-surface text-ink font-semibold text-sm py-2.5 rounded-lg transition-all">
+                Cancelar
+              </button>
+              <button type="button" onClick={submitNew} disabled={ncSaving} className="flex-1 bg-[#5B21F0] hover:bg-[#4A1AD0] disabled:opacity-60 text-white font-semibold text-sm py-2.5 rounded-lg transition-all">
+                {ncSaving ? "Criando…" : "Criar card"}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

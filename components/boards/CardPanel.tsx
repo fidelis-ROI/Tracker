@@ -64,6 +64,14 @@ function toLocalInput(iso: string | null) {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 
+// Data (YYYY-MM-DD) em horário local, para inputs type="date".
+function toDateInput(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+}
+
 function fmtDateTime(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
@@ -612,9 +620,9 @@ export function CardPanel({
               <div>
                 <span className={sideLabel}>Vencimento</span>
                 <input
-                  type="datetime-local"
-                  value={toLocalInput(card.dueDate)}
-                  onChange={(e) => patch({ dueDate: e.target.value || null })}
+                  type="date"
+                  value={toDateInput(card.dueDate)}
+                  onChange={(e) => patch({ dueDate: e.target.value ? `${e.target.value}T23:59` : null })}
                   className={`${input} [color-scheme:dark]`}
                 />
               </div>
