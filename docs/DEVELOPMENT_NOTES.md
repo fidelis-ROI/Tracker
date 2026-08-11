@@ -359,3 +359,18 @@ Migration `20260805000000_client_setup_fee` (colunas `Client.setupFee` Float?, `
 
 - **Cliente (admin)**: no modal de cliente, seção "Dados Administrativos", novo campo **Pagamento de Setup** — valor (`setupFee`) + parcelas (`setupInstallments`). Salvo no POST/PUT de `/api/admin/clients` (admin-only, junto de ticket/contrato).
 - **Financeiro** (`/api/admin/financeiro` + `/admin/financeiro`): calcula setup a partir dos clientes com `setupFee > 0`. 1ª parcela cai no mês da contratação; `paidInstallments = min(installments, mesesDesdeContrato+1)`; sem `contractDate` = considerado à vista (tudo recebido). Métricas: `setupTotal` (contratado), `setupReceived` (parcelas vencidas), `setupPending` (a receber), `setupThisMonth` (parcela do mês). Nova seção "Setup" com 4 StatCards + tabela "Setup por cliente" (valor, parcelas, valor/parcela, recebido, a receber). Só admin vê (a página Financeiro já é admin-only).
+
+---
+
+## 20. Revisão do design system — fundação Apple (2026-08-08)
+
+Sem migração. Passe de fundação em `app/globals.css` (aplicado a partir da skill Apple Design), lifta o app inteiro sem tocar componente por componente:
+
+- **Tipografia**: `font-optical-sizing: auto` + `-webkit-font-smoothing: antialiased` / `text-rendering: optimizeLegibility` no `html/body`.
+- **Feedback no toque (response)**: `button/[role=button]:active { transform: scale(0.97) }` — feedback físico instantâneo no press (só botões, links de nav não encolhem; transform = compositor, sem reflow). Componentes com `active:scale-*` próprio continuam vencendo (maior especificidade).
+- **Easing físico**: curvas `--ease-out` (decelerate) para interativos e `--ease-in-out` para o cross-fade de tema; interativos a 150ms.
+- **Foco por teclado**: `:focus-visible` com ring da marca via `:where()` (0 de especificidade — o foco próprio do componente ainda vence quando existe).
+- **Seleção de texto** na cor da marca.
+- **Acessibilidade** (skill §14): `prefers-reduced-motion` (mantém cross-fade curto, corta viagem/press), `prefers-reduced-transparency` (tira backdrop-blur), `prefers-contrast: more` (linhas mais fortes nos dois temas).
+
+Botões roxos sólidos e a convenção de tokens (seção 10) continuam iguais — isto é só a camada de comportamento/tipografia/a11y por cima.
