@@ -374,3 +374,12 @@ Sem migração. Passe de fundação em `app/globals.css` (aplicado a partir da s
 - **Acessibilidade** (skill §14): `prefers-reduced-motion` (mantém cross-fade curto, corta viagem/press), `prefers-reduced-transparency` (tira backdrop-blur), `prefers-contrast: more` (linhas mais fortes nos dois temas).
 
 Botões roxos sólidos e a convenção de tokens (seção 10) continuam iguais — isto é só a camada de comportamento/tipografia/a11y por cima.
+
+---
+
+## 21. Boards — vencimento por data e criação com campos obrigatórios (2026-08-08)
+
+Sem migração (usa colunas existentes).
+
+- **Vencimento por data**: no painel do card (`CardPanel`), o campo "Vencimento" virou `type="date"` (sem hora). Ao salvar, envia `${data}T23:59` (helper `toDateInput` lê a data local de volta). Início (`startDate`) continua datetime. Card vence às 23:59 do dia, então overdue só dispara depois disso.
+- **Criar card com campos obrigatórios**: o "quick add" inline (só título) foi substituído por um modal em `BoardView` (`Dialog`) que exige **Título, Vencimento, Prioridade, TAG e Responsável**. Sem todos, mostra bordas vermelhas + toast e **não salva** (`submitNew` valida antes do POST). TAG pode ser escolhida entre as do board ou criada na hora (`createNcTag` → `/api/admin/boards/[id]/tags`). O botão "+" do topo da coluna e o "Adicionar card" abrem o mesmo modal com o status daquela coluna. A validação é só no cliente — o POST `/api/admin/cards` continua aceitando os campos como opcionais (subtarefas e outros fluxos usam o mesmo endpoint sem esses campos).
