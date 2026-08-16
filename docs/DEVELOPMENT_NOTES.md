@@ -383,3 +383,15 @@ Sem migração (usa colunas existentes).
 
 - **Vencimento por data**: no painel do card (`CardPanel`), o campo "Vencimento" virou `type="date"` (sem hora). Ao salvar, envia `${data}T23:59` (helper `toDateInput` lê a data local de volta). Início (`startDate`) continua datetime. Card vence às 23:59 do dia, então overdue só dispara depois disso.
 - **Criar card com campos obrigatórios**: o "quick add" inline (só título) foi substituído por um modal em `BoardView` (`Dialog`) que exige **Título, Vencimento, Prioridade, TAG e Responsável**. Sem todos, mostra bordas vermelhas + toast e **não salva** (`submitNew` valida antes do POST). TAG pode ser escolhida entre as do board ou criada na hora (`createNcTag` → `/api/admin/boards/[id]/tags`). O botão "+" do topo da coluna e o "Adicionar card" abrem o mesmo modal com o status daquela coluna. A validação é só no cliente — o POST `/api/admin/cards` continua aceitando os campos como opcionais (subtarefas e outros fluxos usam o mesmo endpoint sem esses campos).
+
+---
+
+## 22. Boards — Cliente no card (obrigatório) + ROI como cliente (2026-08-08)
+
+Migration `20260808000000_card_client`: coluna `BoardCard.clientId` + FK (onDelete SetNull) + seed idempotente do cliente **ROI** (`id=client_roi_internal`, slug `roi-interno`, brand roi).
+
+- **Cliente obrigatório na criação**: o modal de novo card (`BoardView`) ganhou o select **Cliente** (obrigatório, junto de vencimento/prioridade/tag/responsável). `BoardView` busca a lista via `GET /api/admin/clients` (operador também acessa; usa só id+name). Validação no cliente; sem cliente, borda vermelha + toast e não salva.
+- **Editável no painel**: `CardPanel` recebe `clients` como prop e tem um select "Cliente" (patch `clientId`). `FullCard.client` no GET do card.
+- **Exibição**: o cliente aparece no tile do card (nome em roxo ao lado do código) — `client` incluído no GET do board e no tipo `KanbanCard`.
+- **API**: `clientId` em `/api/admin/cards` POST (create data) e PATCH (update). Continua opcional no servidor (subtarefas/outros fluxos usam o mesmo endpoint).
+- **ROI como cliente**: seedado na migration. Aparece no dropdown; como não tem ticket/contractDate, não entra no financeiro/NPS.
