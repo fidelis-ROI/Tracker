@@ -8,6 +8,7 @@ export interface KanbanCard {
   dueDate: string | null;
   assignee: { id: string; name: string } | null;
   tag: { id: string; name: string; color: string } | null;
+  client: { id: string; name: string } | null;
   counts: {
     subtasks: number;
     comments: number;

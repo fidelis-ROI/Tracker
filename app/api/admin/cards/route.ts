@@ -12,6 +12,7 @@ const createSchema = z.object({
   parentId: z.string().nullable().optional(), // se for subtarefa
   assigneeId: z.string().nullable().optional(),
   tagId: z.string().nullable().optional(),
+  clientId: z.string().nullable().optional(),
   dueDate: z.string().nullable().optional(),
 });
 
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
         parentId: data.parentId ?? null,
         assigneeId: data.assigneeId ?? null,
         tagId: data.tagId ?? null,
+        clientId: data.clientId ?? null,
         // Data de criação (Início) padrão = hoje; editável depois no painel do card.
         startDate: new Date(),
         dueDate: data.dueDate ? new Date(data.dueDate) : null,

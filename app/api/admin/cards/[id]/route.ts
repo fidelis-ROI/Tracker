@@ -13,6 +13,7 @@ const updateSchema = z.object({
   assigneeId: z.string().nullable().optional(),
   coAssigneeId: z.string().nullable().optional(),
   tagId: z.string().nullable().optional(),
+  clientId: z.string().nullable().optional(),
   startDate: z.string().nullable().optional(),
   dueDate: z.string().nullable().optional(),
   // Collaborator ids mencionados na descrição nesta edição (para notificar).
@@ -42,6 +43,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       assignee: { select: { id: true, name: true } },
       coAssignee: { select: { id: true, name: true } },
       tag: { select: { id: true, name: true, color: true } },
+      client: { select: { id: true, name: true } },
       parent: { select: { id: true, code: true, title: true } },
       checklist: { orderBy: { order: "asc" }, select: { id: true, text: true, done: true } },
       attachments: {
@@ -105,6 +107,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         assigneeId: data.assigneeId,
         coAssigneeId: data.coAssigneeId,
         tagId: data.tagId,
+        clientId: data.clientId,
         startDate: data.startDate !== undefined ? (data.startDate ? new Date(data.startDate) : null) : undefined,
         dueDate: data.dueDate !== undefined ? (data.dueDate ? new Date(data.dueDate) : null) : undefined,
       },

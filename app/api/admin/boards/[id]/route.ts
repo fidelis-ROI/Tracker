@@ -44,6 +44,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       dueDate: true,
       assignee: { select: { id: true, name: true } },
       tag: { select: { id: true, name: true, color: true } },
+      client: { select: { id: true, name: true } },
       _count: {
         select: {
           subtasks: { where: { deletedAt: null } },
@@ -66,6 +67,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     dueDate: c.dueDate,
     assignee: c.assignee,
     tag: c.tag,
+    client: c.client,
     counts: {
       subtasks: c._count.subtasks,
       comments: c._count.comments,

@@ -33,6 +33,7 @@ model Client {
   operators     ClientOperator[]
   observations  ClientObservation[]
   links         ClientLink[]
+  boardCards    BoardCard[]
 }
 
 model Collaborator {
@@ -153,6 +154,9 @@ model BoardCard {
 
   tagId    String?
   tag      BoardTag? @relation(fields: [tagId], references: [id])
+
+  clientId String?
+  client   Client?   @relation(fields: [clientId], references: [id])
 
   startDate DateTime?
   dueDate   DateTime?

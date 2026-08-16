@@ -85,18 +85,21 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
   const [ncPriority, setNcPriority] = useState("");
   const [ncTag, setNcTag] = useState("");
   const [ncAssignee, setNcAssignee] = useState("");
+  const [ncClient, setNcClient] = useState("");
   const [ncNewTag, setNcNewTag] = useState("");
   const [ncSaving, setNcSaving] = useState(false);
   const [ncErr, setNcErr] = useState<Record<string, boolean>>({});
+  const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
   const [fAssignee, setFAssignee] = useState("");
   const [fTag, setFTag] = useState("");
   const [fPriority, setFPriority] = useState("");
 
   const load = useCallback(async () => {
     try {
-      const [boardRes, collabRes] = await Promise.all([
+      const [boardRes, collabRes, clientRes] = await Promise.all([
         fetch(`/api/admin/boards/${boardId}`),
         fetch("/api/admin/collaborators"),
+        fetch("/api/admin/clients"),
       ]);
       if (boardRes.ok) {
         const data = await boardRes.json();
@@ -104,6 +107,10 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
         setCards(data.cards);
       }
       if (collabRes.ok) setCollaborators(await collabRes.json());
+      if (clientRes.ok) {
+        const cs = await clientRes.json();
+        setClients((cs as { id: string; name: string }[]).map((c) => ({ id: c.id, name: c.name })));
+      }
     } finally {
       setLoading(false);
     }
@@ -140,7 +147,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
 
   function openNew(status: string) {
     setNcStatus(status);
-    setNcTitle(""); setNcDue(""); setNcPriority(""); setNcTag(""); setNcAssignee(""); setNcNewTag("");
+    setNcTitle(""); setNcDue(""); setNcPriority(""); setNcTag(""); setNcAssignee(""); setNcClient(""); setNcNewTag("");
     setNcErr({});
     setNewOpen(true);
   }
@@ -170,6 +177,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
       priority: !ncPriority,
       tag: !ncTag,
       assignee: !ncAssignee,
+      client: !ncClient,
     };
     setNcErr(err);
     if (Object.values(err).some(Boolean)) {
@@ -189,6 +197,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
           priority: ncPriority,
           tagId: ncTag,
           assigneeId: ncAssignee,
+          clientId: ncClient,
         }),
       });
       if (!res.ok) throw new Error();
@@ -397,7 +406,12 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
                             ) : null}
                           </div>
                         </div>
-                        <p className="text-[10.5px] font-mono text-faint mt-2">{card.code}</p>
+                        <div className="flex items-center justify-between gap-2 mt-2">
+                          <p className="text-[10.5px] font-mono text-faint">{card.code}</p>
+                          {card.client && (
+                            <span className="text-[10.5px] font-semibold text-brand-soft truncate max-w-[55%]" title={card.client.name}>{card.client.name}</span>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -421,6 +435,7 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
           board={board}
           boardCards={cards.map((c) => ({ id: c.id, code: c.code, title: c.title }))}
           collaborators={collaborators}
+          clients={clients}
           onClose={() => { setOpenCardId(null); if (searchParams.get("card")) router.replace(pathname); }}
           onChanged={load}
           onOpenCard={(cid) => setOpenCardId(cid)}
@@ -481,6 +496,20 @@ export function BoardView({ boardId, basePath }: { boardId: string; basePath: st
               >
                 <option value="">Selecione…</option>
                 {collaborators.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-dim block mb-1">Cliente <span className="text-red-400">*</span></label>
+              <select
+                value={ncClient}
+                onChange={(e) => { setNcClient(e.target.value); if (e.target.value) setNcErr((x) => ({ ...x, client: false })); }}
+                className={`w-full bg-canvas border rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] ${ncErr.client ? "border-red-400" : "border-line"}`}
+              >
+                <option value="">Selecione…</option>
+                {clients.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>

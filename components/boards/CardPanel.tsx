@@ -48,6 +48,7 @@ interface FullCard {
   assignee: { id: string; name: string } | null;
   coAssignee: { id: string; name: string } | null;
   tag: { id: string; name: string; color: string } | null;
+  client: { id: string; name: string } | null;
   parent: { id: string; code: string; title: string } | null;
   checklist: { id: string; text: string; done: boolean }[];
   attachments: { id: string; filename: string; mimeType: string; size: number; dataUrl: string; createdAt: string }[];
@@ -83,12 +84,13 @@ function humanSize(bytes: number) {
 }
 
 export function CardPanel({
-  cardId, board, boardCards, collaborators, onClose, onChanged, onOpenCard, onTagCreated,
+  cardId, board, boardCards, collaborators, clients, onClose, onChanged, onOpenCard, onTagCreated,
 }: {
   cardId: string;
   board: BoardMeta;
   boardCards: { id: string; code: string; title: string }[];
   collaborators: Collaborator[];
+  clients: { id: string; name: string }[];
   onClose: () => void;
   onChanged: () => void;
   onOpenCard: (id: string) => void;
@@ -527,6 +529,20 @@ export function CardPanel({
                 >
                   <option value="" className="bg-raised">— sem responsável —</option>
                   {collaborators.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-raised">{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <span className={sideLabel}>Cliente</span>
+                <select
+                  value={card.client?.id ?? ""}
+                  onChange={(e) => patch({ clientId: e.target.value || null }, false)}
+                  className={input}
+                >
+                  <option value="" className="bg-raised">— sem cliente —</option>
+                  {clients.map((c) => (
                     <option key={c.id} value={c.id} className="bg-raised">{c.name}</option>
                   ))}
                 </select>
