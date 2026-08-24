@@ -395,3 +395,16 @@ Migration `20260808000000_card_client`: coluna `BoardCard.clientId` + FK (onDele
 - **Exibição**: o cliente aparece no tile do card (nome em roxo ao lado do código) — `client` incluído no GET do board e no tipo `KanbanCard`.
 - **API**: `clientId` em `/api/admin/cards` POST (create data) e PATCH (update). Continua opcional no servidor (subtarefas/outros fluxos usam o mesmo endpoint).
 - **ROI como cliente**: seedado na migration. Aparece no dropdown; como não tem ticket/contractDate, não entra no financeiro/NPS.
+
+---
+
+## 23. Landing do Webinar InfoTime + captura de leads no Slack (2026-08-24)
+
+Página estática pública + envio de leads pro Slack. Sem migração, sem banco.
+
+- **Página**: `public/webinar.html` (HTML autocontido, CSS/JS inline, imagens em base64). Servida em **`/webinar.html`**. É pública: o matcher do `proxy.ts` cobre só `/admin/*` e `/operador/*`, então nem a página nem a rota passam por auth.
+- **Rota**: `app/api/leads/route.ts` (POST). Valida `{nome, laboratorio, cidade, origem?}` com Zod e posta no Slack via **Incoming Webhook** (Block Kit + `text` fallback pro mobile). Erros: `not_configured` (500) se faltar env, `slack_failed` (502) se o Slack rejeitar, `validation` (400).
+- **Env**: `SLACK_WEBHOOK_URL` no `.env` (gitignored). **Produção precisa da var nas Variables do Railway** — sem ela a rota responde `not_configured` (mas o form não trava o usuário: o `fetch` está em try/catch e segue pro grupo do WhatsApp mesmo se o Slack falhar).
+- **Form**: o handler de submit em `public/webinar.html` foi ajustado pra `await fetch('/api/leads', ...)` antes de `window.location.href=GRUPO` (WhatsApp). O `await` garante que o POST sai antes da navegação.
+- **Não persiste no banco** (só Slack). Se precisar salvar, criar model `Lead` no Prisma (migration em prod).
+- Testado local: `/webinar.html` renderiza e `POST /api/leads` → 200 `{"success":true}` (Slack aceitou).
