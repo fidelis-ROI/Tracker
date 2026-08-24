@@ -398,13 +398,20 @@ Migration `20260808000000_card_client`: coluna `BoardCard.clientId` + FK (onDele
 
 ---
 
-## 23. Landing do Webinar InfoTime + captura de leads no Slack (2026-08-24)
+## 23. Landing do Webinar InfoTime — MOVIDA para projeto separado (2026-08-24)
 
-Página estática pública + envio de leads pro Slack. Sem migração, sem banco.
+A landing do webinar chegou a ser criada dentro deste app (`public/webinar.html`
++ `app/api/leads/route.ts`), mas **foi removida daqui** e vive num projeto próprio.
+Motivo: é um asset de campanha pública (InfoTime/Liga Sistemas), sem relação com o
+CRM interno — não faz sentido acoplar (deploys/falhas compartilhados, página pública
+solta no app interno).
 
-- **Página**: `public/webinar.html` (HTML autocontido, CSS/JS inline, imagens em base64). Servida em **`/webinar.html`**. É pública: o matcher do `proxy.ts` cobre só `/admin/*` e `/operador/*`, então nem a página nem a rota passam por auth.
-- **Rota**: `app/api/leads/route.ts` (POST). Valida `{nome, laboratorio, cidade, origem?}` com Zod e posta no Slack via **Incoming Webhook** (Block Kit + `text` fallback pro mobile). Erros: `not_configured` (500) se faltar env, `slack_failed` (502) se o Slack rejeitar, `validation` (400).
-- **Env**: `SLACK_WEBHOOK_URL` no `.env` (gitignored). **Produção precisa da var nas Variables do Railway** — sem ela a rota responde `not_configured` (mas o form não trava o usuário: o `fetch` está em try/catch e segue pro grupo do WhatsApp mesmo se o Slack falhar).
-- **Form**: o handler de submit em `public/webinar.html` foi ajustado pra `await fetch('/api/leads', ...)` antes de `window.location.href=GRUPO` (WhatsApp). O `await` garante que o POST sai antes da navegação.
-- **Não persiste no banco** (só Slack). Se precisar salvar, criar model `Lead` no Prisma (migration em prod).
-- Testado local: `/webinar.html` renderiza e `POST /api/leads` → 200 `{"success":true}` (Slack aceitou).
+- **Onde vive agora**: repo `fidelis-ROI/webinar-infotime` (privado), deploy próprio no
+  Railway (projeto `fearless-achievement`, serviço `webinar-infotime`,
+  URL `webinar-infotime-production.up.railway.app`). Stack: Node + Express, sem build.
+- **O que ficou no Tracker**: nada. Os 2 arquivos foram `git rm` e a var `SLACK_WEBHOOK_URL`
+  saiu do `.env` local.
+- **Gotcha registrado** (custou uma sessão de debug): no Railway, valor de variável **não pode
+  ter aspas**. `SLACK_WEBHOOK_URL="https://..."` guarda as aspas como parte do valor e quebra o
+  `fetch`. Além disso, mudar variável **não redeploya sozinho** — precisa Redeploy/Restart manual
+  pro processo pegar o novo valor.
