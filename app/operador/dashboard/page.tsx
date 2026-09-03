@@ -33,6 +33,10 @@ function monthLabel(month: string) {
   return `${months[parseInt(m) - 1]}/${year}`;
 }
 
+function fmtDateTime(iso: string) {
+  return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 function MetricTile({ label, value, icon: Icon, sub }: { label: string; value: string | number; icon: React.ElementType; sub: string }) {
   return (
     <div className="bg-surface border border-line rounded-[14px] p-[22px]">
@@ -64,6 +68,11 @@ export default function OperadorDashboardPage() {
   const avgScore = allScores.length > 0 ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10 : null;
   const activeClients = portfolio.filter(c => c.active).length;
   const totalResponses = portfolio.reduce((sum, c) => sum + c.responses.length, 0);
+
+  const latest = portfolio
+    .flatMap(c => c.responses.map(r => ({ ...r, clientName: c.name })))
+    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+    .slice(0, 15);
 
   return (
     <div className="px-16 py-14">
@@ -158,6 +167,50 @@ export default function OperadorDashboardPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Últimas avaliações */}
+      {!loading && (
+        <div className="mt-10">
+          <h2 className="text-[21px] font-extrabold text-ink mb-1">Últimas avaliações</h2>
+          <p className="text-sm text-dim mb-4">Respostas recentes dos seus clientes, com data, nota e comentário.</p>
+          {latest.length === 0 ? (
+            <div className="bg-surface border border-line rounded-[14px] py-10 px-5 text-center">
+              <p className="text-base text-dim">Nenhuma avaliação ainda.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {latest.map((r) => (
+                <div key={r.id} className="bg-surface border border-line rounded-[14px] p-5">
+                  <div className="flex items-center justify-between gap-3 mb-2.5 flex-wrap">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-ink font-semibold text-sm">{r.clientName}</span>
+                      <span className="text-faint text-xs">·</span>
+                      <span className="text-dim text-xs">{fmtDateTime(r.submittedAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-dim uppercase tracking-wide">Aquisição</span>
+                        <span className="text-ink font-bold text-sm">{r.trafegoScore}</span>
+                        <NpsLabel score={r.trafegoScore} />
+                      </div>
+                      {r.designerScore !== null && r.designerScore !== undefined && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-dim uppercase tracking-wide">Entrega</span>
+                          <span className="text-ink font-bold text-sm">{r.designerScore}</span>
+                          <NpsLabel score={r.designerScore} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[13.5px] text-ink-soft whitespace-pre-wrap leading-relaxed">
+                    {r.feedback ? `"${r.feedback}"` : <span className="text-faint italic">Sem comentário</span>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

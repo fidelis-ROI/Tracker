@@ -368,7 +368,7 @@ export default function OperadorClientesPage() {
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-line">
-                              {["Período","Nota Aquisição","Nota Entrega","Feedback","Data"].map(h => (
+                              {["Período","Nota Aquisição","Nota Entrega","Comentário","Data e hora"].map(h => (
                                 <th key={h} className="text-left px-[26px] py-2.5 text-xs font-bold text-dim uppercase tracking-widest">{h}</th>
                               ))}
                             </tr>
@@ -391,11 +391,11 @@ export default function OperadorClientesPage() {
                                     </div>
                                   ) : <span className="text-dim/40 text-xs">—</span>}
                                 </td>
-                                <td className="px-[26px] py-3 text-dim text-xs max-w-xs truncate">
-                                  {r.feedback || <span className="opacity-40">—</span>}
+                                <td className="px-[26px] py-3 text-ink-soft text-[13px] min-w-[220px] max-w-md whitespace-pre-wrap leading-relaxed">
+                                  {r.feedback || <span className="text-faint">—</span>}
                                 </td>
                                 <td className="px-[26px] py-3 text-dim text-xs whitespace-nowrap">
-                                  {new Date(r.submittedAt).toLocaleDateString("pt-BR")}
+                                  {new Date(r.submittedAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                                 </td>
                               </tr>
                             ))}

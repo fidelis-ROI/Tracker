@@ -32,6 +32,10 @@ function monthLabel(month: string) {
   return `${months[parseInt(m) - 1]}/${year}`;
 }
 
+function fmtDateTime(iso: string) {
+  return new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 function availableMonths(count = 12): string[] {
   const months: string[] = [];
   const now = new Date();
@@ -244,7 +248,7 @@ export default function DashboardPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-line bg-surface-hover/40">
-                    {["Cliente","Operador","Aquisição","Entrega","Feedback","Data"].map(h => (
+                    {["Cliente","Operador","Aquisição","Entrega","Comentário","Data e hora"].map(h => (
                       <th key={h} className="text-left px-5 py-3 text-xs font-bold text-dim uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
@@ -268,8 +272,8 @@ export default function DashboardPage() {
                           </div>
                         ) : <span className="text-dim/40 text-xs">—</span>}
                       </td>
-                      <td className="px-5 py-3 text-dim text-xs max-w-xs truncate">{r.feedback || <span className="opacity-40">—</span>}</td>
-                      <td className="px-5 py-3 text-dim text-xs whitespace-nowrap">{new Date(r.submittedAt).toLocaleDateString("pt-BR")}</td>
+                      <td className="px-5 py-3 text-ink-soft text-[13px] min-w-[240px] max-w-md whitespace-pre-wrap leading-relaxed">{r.feedback || <span className="text-faint">—</span>}</td>
+                      <td className="px-5 py-3 text-dim text-xs whitespace-nowrap">{fmtDateTime(r.submittedAt)}</td>
                     </tr>
                   ))}
                 </tbody>
