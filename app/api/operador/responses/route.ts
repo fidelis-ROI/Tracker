@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
 
   const responses = await prisma.npsResponse.findMany({
     where: {
-      trafegoCollab: collaboratorId,
+      // A avaliação aparece para quem é o gestor OU o designer do cliente.
+      OR: [{ trafegoCollab: collaboratorId }, { designerCollab: collaboratorId }],
       ...(month ? { month } : {}),
       ...(clientId ? { clientId } : {}),
     },
