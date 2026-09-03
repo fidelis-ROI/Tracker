@@ -415,3 +415,13 @@ solta no app interno).
   ter aspas**. `SLACK_WEBHOOK_URL="https://..."` guarda as aspas como parte do valor e quebra o
   `fetch`. Além disso, mudar variável **não redeploya sozinho** — precisa Redeploy/Restart manual
   pro processo pegar o novo valor.
+
+---
+
+## 23. Avaliações visíveis (operador + admin): data/hora, nota, comentário (2026-09-03)
+
+Sem migração (usa `/api/operador/portfolio`, `/api/operador/responses`, `/api/admin/responses` que já retornam `feedback` + `submittedAt` + notas).
+
+- **Operador — dashboard (Carteira)** (`app/operador/dashboard/page.tsx`): nova seção **"Últimas avaliações"** que achata `portfolio[].responses`, ordena por `submittedAt` desc e mostra as 15 mais recentes com **cliente, data e hora, nota (Aquisição/Entrega + NpsLabel) e comentário completo** (`"..."` ou "Sem comentário"). Helper `fmtDateTime`.
+- **Operador — Clientes** (`app/operador/clientes/page.tsx`): a tabela de respostas por cliente teve o comentário **destruncado** (`whitespace-pre-wrap`, sem `max-w-xs truncate`) e a data virou **data + hora**; headers renomeados para "Comentário" / "Data e hora".
+- **Admin — Dashboard** (`app/admin/dashboard/page.tsx`): na tabela "Respostas do Período" o Feedback foi **destruncado** e a Data virou **data + hora**; headers → "Comentário" / "Data e hora". Continua filtrando pelo mês selecionado.
