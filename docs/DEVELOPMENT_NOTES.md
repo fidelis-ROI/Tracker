@@ -425,3 +425,9 @@ Sem migração (usa `/api/operador/portfolio`, `/api/operador/responses`, `/api/
 - **Operador — dashboard (Carteira)** (`app/operador/dashboard/page.tsx`): nova seção **"Últimas avaliações"** que achata `portfolio[].responses`, ordena por `submittedAt` desc e mostra as 15 mais recentes com **cliente, data e hora, nota (Aquisição/Entrega + NpsLabel) e comentário completo** (`"..."` ou "Sem comentário"). Helper `fmtDateTime`.
 - **Operador — Clientes** (`app/operador/clientes/page.tsx`): a tabela de respostas por cliente teve o comentário **destruncado** (`whitespace-pre-wrap`, sem `max-w-xs truncate`) e a data virou **data + hora**; headers renomeados para "Comentário" / "Data e hora".
 - **Admin — Dashboard** (`app/admin/dashboard/page.tsx`): na tabela "Respostas do Período" o Feedback foi **destruncado** e a Data virou **data + hora**; headers → "Comentário" / "Data e hora". Continua filtrando pelo mês selecionado.
+
+---
+
+## 24. Avaliacao visivel para gestor E designer do cliente (2026-09-03)
+
+Sem migracao. `/api/operador/responses` filtrava so por `trafegoCollab` (o gestor), entao o **designer** do cliente nao via as respostas na tela de Clientes (drill-down). Trocado para `OR: [{ trafegoCollab }, { designerCollab }]` — a avaliacao aparece para as duas funcoes. A dashboard do operador ("Ultimas avaliacoes") ja usava `/api/operador/portfolio` (ClientOperator, que contem gestor e designer), entao ja mostrava para ambos.
