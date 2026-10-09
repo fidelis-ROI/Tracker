@@ -5,7 +5,7 @@ import { z } from "zod";
 
 // Sem storage externo: anexos são guardados como data URL base64 na própria linha.
 // Limite conservador para não estourar a linha do Postgres.
-const MAX_BYTES = 1_500_000;
+const MAX_BYTES = 3_000_000;
 
 const createSchema = z.object({
   filename: z.string().min(1),

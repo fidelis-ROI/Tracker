@@ -216,8 +216,8 @@ export function CardPanel({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    if (file.size > 1_500_000) {
-      toast.error("Arquivo muito grande (máx. 1,5 MB).");
+    if (file.size > 3_000_000) {
+      toast.error("Arquivo muito grande (máx. 3 MB).");
       return;
     }
     const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -385,7 +385,7 @@ export function CardPanel({
                 onClick={() => fileRef.current?.click()}
                 className="w-full border border-dashed border-line-strong rounded-lg py-4 text-[13.5px] text-dim hover:text-ink hover:border-line-strong transition-all flex items-center justify-center gap-2 mb-8"
               >
-                <Paperclip size={14} /> Anexar arquivo (máx. 1,5 MB)
+                <Paperclip size={14} /> Anexar arquivo (máx. 3 MB)
               </button>
               <input ref={fileRef} type="file" className="hidden" onChange={onFile} />
 
