@@ -431,3 +431,9 @@ Sem migração (usa `/api/operador/portfolio`, `/api/operador/responses`, `/api/
 ## 24. Avaliacao visivel para gestor E designer do cliente (2026-09-03)
 
 Sem migracao. `/api/operador/responses` filtrava so por `trafegoCollab` (o gestor), entao o **designer** do cliente nao via as respostas na tela de Clientes (drill-down). Trocado para `OR: [{ trafegoCollab }, { designerCollab }]` — a avaliacao aparece para as duas funcoes. A dashboard do operador ("Ultimas avaliacoes") ja usava `/api/operador/portfolio` (ClientOperator, que contem gestor e designer), entao ja mostrava para ambos.
+
+---
+
+## 25. Dashboard admin — "NPS por cliente" (2026-10-21)
+
+Sem migracao. Nova secao no `/admin/dashboard` (apos as metricas): seletor de cliente proprio que, ao escolher, busca `/api/admin/responses?clientId=<id>` (sem mes = todos os periodos) e mostra so as respostas de NPS daquele cliente — NPS de aquisicao + total de respostas no topo, e cada resposta com data/hora, periodo, nota Aquisicao/Entrega (NpsLabel) e comentario. Independente dos filtros de mes/operador do topo.
