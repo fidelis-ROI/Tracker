@@ -78,6 +78,21 @@ export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [operators, setOperators] = useState<Collaborator[]>([]);
   const [collabStats, setCollabStats] = useState<CollabStat[]>([]);
+  // "NPS por cliente": respostas de um cliente, de todos os períodos.
+  const [npsClient, setNpsClient] = useState("");
+  const [npsResponses, setNpsResponses] = useState<Response[]>([]);
+  const [npsLoading, setNpsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!npsClient) { setNpsResponses([]); return; }
+    let alive = true;
+    setNpsLoading(true);
+    fetch(`/api/admin/responses?clientId=${npsClient}`)
+      .then((r) => r.json())
+      .then((d: Response[]) => { if (alive) setNpsResponses(d); })
+      .finally(() => { if (alive) setNpsLoading(false); });
+    return () => { alive = false; };
+  }, [npsClient]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -202,6 +217,74 @@ export default function DashboardPage() {
           <MetricTile label="DISTRIBUIÇÃO" value={`${Math.round((promoters / total) * 100)}% P`} icon={BarChart3} sub={`${Math.round((neutrals / total) * 100)}% N · ${Math.round((detractors / total) * 100)}% D`} />
         </div>
       )}
+
+      {/* NPS por cliente — respostas de um cliente, de todos os períodos */}
+      <div className="mb-9">
+        <div className="flex items-baseline gap-3 mb-4 mt-2 flex-wrap">
+          <h2 className="text-[21px] font-extrabold text-ink tracking-[-0.01em]">NPS por cliente</h2>
+          <span className="text-[12.5px] text-faint">Só as respostas de NPS do cliente, de todos os períodos</span>
+        </div>
+        <div className="bg-surface border border-line rounded-2xl p-5 shadow-[0_1px_3px_rgba(15,20,40,0.05)]">
+          <div className="relative inline-block mb-4">
+            <select
+              value={npsClient}
+              onChange={(e) => setNpsClient(e.target.value)}
+              className="appearance-none bg-canvas border border-line rounded-[10px] pl-4 pr-10 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[#7C1EFB] cursor-pointer"
+            >
+              <option value="">Selecione um cliente…</option>
+              {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <ChevronDown size={14} strokeWidth={2.5} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-dim" />
+          </div>
+
+          {!npsClient ? (
+            <p className="text-dim text-sm">Selecione um cliente para ver só as respostas de NPS dele.</p>
+          ) : npsLoading ? (
+            <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg bg-surface-hover/40" />)}</div>
+          ) : npsResponses.length === 0 ? (
+            <p className="text-dim text-sm">Este cliente ainda não tem respostas de NPS.</p>
+          ) : (
+            <>
+              <div className="flex items-center gap-8 mb-4 pb-4 border-b border-line">
+                <div>
+                  <p className="text-[11px] font-bold tracking-[0.06em] text-dim mb-1">NPS (AQUISIÇÃO)</p>
+                  {(() => { const n = calcNps(npsResponses, "trafegoScore"); return <p className="text-[24px] font-extrabold text-ink leading-none">{n !== null ? `${n > 0 ? "+" : ""}${n}` : "—"}</p>; })()}
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold tracking-[0.06em] text-dim mb-1">RESPOSTAS</p>
+                  <p className="text-[24px] font-extrabold text-ink leading-none">{npsResponses.length}</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {npsResponses.map((r) => (
+                  <div key={r.id} className="border border-line rounded-xl p-4">
+                    <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                      <span className="text-dim text-xs">{fmtDateTime(r.submittedAt)} · {monthLabel(r.month)}</span>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-dim uppercase tracking-wide">Aquisição</span>
+                          <span className="text-ink font-bold text-sm">{r.trafegoScore}</span>
+                          <NpsLabel score={r.trafegoScore} />
+                        </div>
+                        {r.designerScore !== null && r.designerScore !== undefined && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] text-dim uppercase tracking-wide">Entrega</span>
+                            <span className="text-ink font-bold text-sm">{r.designerScore}</span>
+                            <NpsLabel score={r.designerScore} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-[13.5px] text-ink-soft whitespace-pre-wrap leading-relaxed">
+                      {r.feedback ? `"${r.feedback}"` : <span className="text-faint italic">Sem comentário</span>}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Segregação por Marca */}
       <div className="mb-9">
